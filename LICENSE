@@ -1,0 +1,44 @@
+Data Analysis Workshop — a facilitation kit by Wolfpack Digital
+Copyright (c) 2026 Wolfpack Digital SRL
+
+Licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International License (CC BY-NC-SA 4.0).
+
+    https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+You are free to:
+
+  Share  — copy and redistribute the material in any medium or format
+  Adapt  — remix, transform, and build upon the material
+
+Under the following terms:
+
+  Attribution   — You must give appropriate credit to Wolfpack Digital, provide
+                  a link to this license, and indicate if changes were made. You
+                  may do so in any reasonable manner, but not in any way that
+                  suggests Wolfpack Digital endorses you or your use.
+
+  NonCommercial — You may not use the material for commercial purposes. Running
+                  this workshop internally for your own team is fine. Charging
+                  admission to it, or billing a client for facilitating it, is
+                  not, without written permission.
+
+  ShareAlike    — If you remix, transform, or build upon the material, you must
+                  distribute your contributions under the same license as the
+                  original.
+
+No additional restrictions — you may not apply legal terms or technological
+measures that legally restrict others from doing anything the license permits.
+
+--------------------------------------------------------------------------------
+A NOTE ON THE DATA
+
+Every number, user, review, support ticket and bank in this kit is synthetic.
+"Nimbus" is not a real product, the banks in the mock app are invented, and no
+figure here describes any real company's performance. The dataset is constructed
+so that the exercises have correct answers — including a deliberate confounder —
+and it should never be cited as evidence about anything outside this workshop.
+
+--------------------------------------------------------------------------------
+Want to run this for a client, or want the version with your own product in it?
+hello@wolfpack-digital.com · https://www.wolfpack-digital.com

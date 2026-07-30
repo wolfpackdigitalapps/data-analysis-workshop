@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimbus — Money that moves at your speed</title>
+<style>
+  :root{
+    --indigo:#4F46E5; --sky:#0EA5E9; --ink:#0F172A; --slate:#475569;
+    --muted:#94A3B8; --line:#E2E8F0; --bg:#F1F5F9; --card:#FFFFFF;
+    --good:#10B981; --warn:#F59E0B; --bad:#EF4444;
+    --grad:linear-gradient(135deg,#4F46E5 0%,#0EA5E9 100%);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%,#e0e7ff 0,#f1f5f9 55%) ,#eef2f7;
+    color:var(--ink); display:flex; min-height:100%; align-items:center; justify-content:center;
+    padding:24px; gap:28px; flex-wrap:wrap;
+  }
+  /* Phone frame */
+  .phone{
+    width:390px; height:800px; background:#000; border-radius:46px; padding:12px;
+    box-shadow:0 30px 70px rgba(15,23,42,.35), 0 2px 6px rgba(15,23,42,.2);
+    position:relative; flex:0 0 auto;
+  }
+  .screen{
+    width:100%; height:100%; background:var(--bg); border-radius:36px; overflow:hidden;
+    position:relative; display:flex; flex-direction:column;
+  }
+  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#000;border-radius:0 0 16px 16px;z-index:40}
+  .statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;font-weight:600;color:var(--ink);flex:0 0 auto}
+  .statusbar.onbrand{color:#fff}
+  .view{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .view::-webkit-scrollbar{width:0}
+  .pad{padding:20px}
+  /* Typography */
+  h1{font-size:26px;line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+  h2{font-size:20px;margin:0 0 6px;letter-spacing:-.01em}
+  p.sub{color:var(--slate);font-size:14px;line-height:1.5;margin:0 0 18px}
+  .small{font-size:12px;color:var(--muted)}
+  /* Buttons */
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;
+    padding:15px 16px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .05s, box-shadow .2s;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(79,70,229,.35)}
+  .btn.ghost{background:#fff;color:var(--indigo);border:1.5px solid var(--line)}
+  .btn.subtle{background:#EEF2FF;color:var(--indigo)}
+  .btn.dark{background:var(--ink);color:#fff}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+  .btn.sm{padding:11px 14px;font-size:14px;border-radius:11px;width:auto}
+  .link{color:var(--indigo);font-weight:700;cursor:pointer;text-decoration:none;font-size:14px}
+  /* Inputs */
+  label.f{display:block;font-size:13px;font-weight:600;color:var(--slate);margin:14px 0 6px}
+  input.f,select.f{width:100%;padding:14px;border:1.5px solid var(--line);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink)}
+  input.f:focus,select.f:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  /* Brand hero */
+  .hero{background:var(--grad);color:#fff;flex:0 0 auto;padding:0 0 26px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.02em}
+  .logo{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:17px}
+  .cloud{font-size:17px}
+  /* Cards */
+  .card{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 1px 3px rgba(15,23,42,.06);border:1px solid #eef1f6}
+  .card+.card{margin-top:14px}
+  .balance{background:var(--grad);color:#fff;border:0;box-shadow:0 14px 30px rgba(14,165,233,.35)}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px}
+  .pill.good{background:#ecfdf5;color:#047857}
+  .pill.warn{background:#fffbeb;color:#b45309}
+  .pill.info{background:#eff6ff;color:#1d4ed8}
+  /* Stepper */
+  .steps{display:flex;gap:6px;margin:2px 0 18px}
+  .steps div{height:5px;border-radius:3px;flex:1;background:var(--line)}
+  .steps div.on{background:var(--indigo)}
+  .steps div.done{background:var(--good)}
+  /* ID capture */
+  .capframe{position:relative;height:200px;border-radius:16px;background:#0b1220;overflow:hidden;display:grid;place-items:center;color:#cbd5e1;border:2px dashed #334155}
+  .capframe .guide{position:absolute;inset:26px 22px;border:2px solid rgba(255,255,255,.5);border-radius:12px}
+  .idcard{width:210px;height:132px;border-radius:12px;background:linear-gradient(135deg,#1e293b,#334155);color:#e2e8f0;padding:12px;font-size:10px;position:relative;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+  .idcard .ph{width:44px;height:54px;border-radius:6px;background:#475569;position:absolute;right:12px;top:12px}
+  .glare{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 48%,transparent 62%);opacity:0;transition:opacity .3s}
+  .glare.show{opacity:1}
+  .face{width:120px;height:120px;border-radius:50%;border:3px solid rgba(255,255,255,.6);display:grid;place-items:center;font-size:52px;background:#111827}
+  .spinner{width:44px;height:44px;border-radius:50%;border:4px solid #e2e8f0;border-top-color:var(--indigo);animation:spin 1s linear infinite;margin:8px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .check{width:74px;height:74px;border-radius:50%;background:#ecfdf5;color:var(--good);display:grid;place-items:center;font-size:40px;margin:6px auto 12px;border:2px solid #a7f3d0}
+  /* list rows */
+  .lrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .lrow:last-child{border-bottom:0}
+  .ava{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+  .bank{border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px}
+  .bank:hover{border-color:var(--indigo);background:#f8faff}
+  .bank.sel{border-color:var(--indigo);background:#eef2ff}
+  /* bottom nav */
+  .nav{flex:0 0 auto;display:flex;justify-content:space-around;padding:10px 8px 18px;background:#fff;border-top:1px solid var(--line)}
+  .nav a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);text-decoration:none;font-weight:600;cursor:pointer}
+  .nav a.on{color:var(--indigo)}
+  .nav .ic{font-size:20px}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:30px}
+  .toast{position:absolute;left:16px;right:16px;bottom:16px;background:var(--ink);color:#fff;padding:13px 16px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transform:translateY(10px);transition:.25s;z-index:50;pointer-events:none}
+  .tgl{width:44px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;transition:.2s;flex:0 0 auto;cursor:pointer}
+  .tgl:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .tgl.on{background:var(--good)} .tgl.on:after{left:21px}
+  .toast.show{opacity:1;transform:none}
+  .amt{font-size:40px;font-weight:800;letter-spacing:-.03em;text-align:center;margin:10px 0}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .keypad button{padding:16px;font-size:20px;font-weight:700;border:0;background:#fff;border-radius:12px;cursor:pointer;font-family:inherit}
+  .keypad button:active{background:#eef2ff}
+  .fee{display:flex;justify-content:space-between;font-size:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:12px;font-size:13px;margin-bottom:12px;line-height:1.45}
+  /* Facilitator dock (outside phone) */
+  .dock{width:320px;flex:0 0 auto;align-self:stretch;max-height:800px;overflow:auto;background:#0f172a;color:#cbd5e1;border-radius:20px;padding:18px;font-size:13px}
+  .dock h3{color:#fff;margin:0 0 4px;font-size:15px}
+  .dock .st{font-size:12px;color:#94a3b8;margin:0 0 14px}
+  .dock .stage{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;margin-bottom:5px;background:#1e293b}
+  .dock .stage.done{background:#064e3b;color:#a7f3d0}
+  .dock .stage.cur{background:#3730a3;color:#e0e7ff;font-weight:700}
+  .dock .dot{width:9px;height:9px;border-radius:50%;background:#475569}
+  .dock .stage.done .dot{background:#34d399}
+  .dock .stage.cur .dot{background:#a5b4fc}
+  .dock .evt{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#7dd3fc;padding:3px 0;border-bottom:1px solid #1e293b}
+  .dock button{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;padding:9px;font-size:12px;cursor:pointer;width:100%;margin-top:6px;font-family:inherit;font-weight:600}
+  .dock button:hover{background:#334155}
+  .dock .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin:16px 0 6px}
+  @media(max-width:1100px){.dock{width:390px;max-height:none}}
+  /* Real-phone fullscreen — drop the phone frame below tablet width so it fills the screen */
+  @media(max-width:520px){
+    body{padding:0;gap:0;display:block;min-height:100dvh;background:var(--bg)}
+    .phone{width:100%;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:transparent;flex:none}
+    .screen{border-radius:0;height:100%}
+    .notch{display:none}
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar" id="statusbar"><span>9:41</span><span>Nimbus • demo</span></div>
+      <div class="view" id="view"></div>
+      <div id="navwrap"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <!-- Facilitator / analytics dock — OFF by default; a facilitator enables it with ?facilitator=1 in the URL -->
+  <div class="dock" id="facDock" style="display:none">
+    <h3>🎛️ Facilitator panel</h3>
+    <p class="st">Not part of the product — a teaching aid. Shows the funnel stage each screen maps to, and the analytics events the app "emits". Hide it before letting a group explore blind.</p>
+    <div class="lbl">Funnel stage reached</div>
+    <div id="stages"></div>
+    <div class="lbl">Event stream (this session)</div>
+    <div id="events"><span class="small" style="color:#64748b">No events yet — start the flow.</span></div>
+    <div class="lbl">Demo controls</div>
+    <button onclick="jump('home')">⤏ Skip to a funded account (Home)</button>
+    <button onclick="resetAll()">↺ Reset the demo (clear this device)</button>
+    <button onclick="toggleDock()">🙈 Hide this panel</button>
+  </div>
+
+<script>
+/* ---------------- State ---------------- */
+const KEY='nimbus_demo_v1';
+const FUNNEL=[
+  {id:'install', label:'Installed / opened'},
+  {id:'signup',  label:'Signed up'},
+  {id:'kyc',     label:'Verified identity (KYC)'},
+  {id:'bank',    label:'Linked bank'},
+  {id:'txn',     label:'First transaction'},
+  {id:'retain',  label:'Repeat transaction'},
+];
+let S=load();
+function defaults(){
+  return {screen:'landing', stage:'install', user:null, kyc:{}, capAttempts:0,
+          bank:null, balance:0, plus:false, txns:[], events:[], navTab:'home',
+          cardFrozen:false, cardShown:false, notifs:[], recipient:null, outstanding:0};
+}
+function load(){
+  const def=defaults();
+  try{const r=JSON.parse(localStorage.getItem(KEY));
+    if(r){ const m=Object.assign(def,r);   // merge so states saved before new fields existed still get them
+      m.notifs=Array.isArray(m.notifs)?m.notifs:[];
+      m.txns=Array.isArray(m.txns)?m.txns:[];
+      m.events=Array.isArray(m.events)?m.events:[];
+      if(typeof m.outstanding!=='number')m.outstanding=0;
+      return m; }
+  }catch(e){}
+  return def;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function emit(ev,meta){S.events.push({ev,t:clock(),meta:meta||null});save();paintDock();}
+let _c=0; function clock(){_c++;const m=9,base=41;return `9:${String(base+_c).padStart(2,'0')}`;}
+function reach(stage){const order=FUNNEL.map(f=>f.id);if(order.indexOf(stage)>order.indexOf(S.stage))S.stage=stage;save();paintDock();}
+
+/* ---------------- Router ---------------- */
+const view=()=>document.getElementById('view');
+function go(screen){S.screen=screen;save();render();window.scrollTo&&view().scrollTo(0,0);}
+function render(){
+  const sb=document.getElementById('statusbar');
+  const onbrand=['landing','signup'].includes(S.screen);
+  sb.className='statusbar'+(onbrand?' onbrand':'');
+  view().innerHTML=(SCREENS[S.screen]||SCREENS.landing)();
+  document.getElementById('navwrap').innerHTML=showNav()?navHTML():'';
+  paintDock();
+}
+function showNav(){return ['home','activity','card','profile'].includes(S.screen);}
+
+/* ---------------- Screens ---------------- */
+const SCREENS={
+landing(){return `
+  <div class="hero pad">
+    <div class="brand" style="margin-top:6px"><span class="logo">☁️</span> Nimbus</div>
+    <div style="height:60px"></div>
+    <h1 style="color:#fff;font-size:32px">Money that moves at your speed.</h1>
+    <p style="color:#e0e7ff;font-size:15px;line-height:1.5;margin:10px 0 0">Get an instant advance on money you're owed, and send with near-zero fees. No waiting on payday.</p>
+  </div>
+  <div class="pad">
+    <div class="card" style="margin-top:-30px">
+      <div style="display:flex;gap:14px;align-items:center"><div class="ava" style="background:#eef2ff">⚡</div><div><b>Instant advances</b><div class="small">Cash in seconds, not days</div></div></div>
+      <div style="height:12px"></div>
+      <div style="display:flex;gap:14px;align-items:center"><div class="ava" style="background:#ecfeff">🛡️</div><div><b>Bank-grade security</b><div class="small">Verified & encrypted</div></div></div>
+    </div>
+    <div style="height:18px"></div>
+    <button class="btn primary" onclick="go('signup')">Get started</button>
+    <div style="height:10px"></div>
+    <button class="btn ghost" onclick="go('login')">I already have an account</button>
+    <p class="small" style="text-align:center;margin-top:16px">By continuing you agree to Nimbus's Terms &amp; Privacy Policy.</p>
+  </div>`;
+},
+
+signup(){return `
+  <div class="hero pad" style="padding-bottom:20px">
+    <div class="brand"><span class="logo">☁️</span> Nimbus</div>
+  </div>
+  <div class="pad">
+    <div class="card" style="margin-top:-26px">
+      <h2>Create your account</h2>
+      <p class="sub">Takes about 30 seconds.</p>
+      <label class="f">Mobile number</label>
+      <input class="f" id="su_phone" inputmode="tel" placeholder="+40 7xx xxx xxx" value="${S.user?.phone||''}">
+      <label class="f">Email</label>
+      <input class="f" id="su_email" type="email" placeholder="you@email.com" value="${S.user?.email||''}">
+      <label class="f">Create a password</label>
+      <input class="f" id="su_pass" type="password" placeholder="At least 8 characters">
+      <div style="height:20px"></div>
+      <button class="btn primary" onclick="doSignup()">Create account</button>
+    </div>
+    <p class="small" style="text-align:center;margin-top:14px">Have an account? <span class="link" onclick="jump('home')">Log in</span></p>
+  </div>`;
+},
+
+kyc_intro(){return `
+  <div class="pad">
+    ${stepper(0)}
+    <div class="ava" style="width:56px;height:56px;background:#eef2ff;font-size:26px;border-radius:16px">🛡️</div>
+    <h1 style="margin-top:16px">Let's verify it's really you</h1>
+    <p class="sub">Regulations require us to confirm your identity before you can move money. You'll need a photo ID.</p>
+    <div class="card">
+      <div class="lrow"><div class="ava" style="background:#eef2ff">①</div><div><b>Your details</b><div class="small">Name, date of birth, address</div></div></div>
+      <div class="lrow"><div class="ava" style="background:#eef2ff">②</div><div><b>Photo of your ID</b><div class="small">Passport, ID card or licence</div></div></div>
+      <div class="lrow"><div class="ava" style="background:#eef2ff">③</div><div><b>A quick selfie</b><div class="small">To match your ID</div></div></div>
+    </div>
+    <div style="height:18px"></div>
+    <button class="btn primary" onclick="go('kyc_details')">Start verification</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="skipKyc()">I'll do this later</button>
+  </div>`;
+},
+
+kyc_details(){return `
+  <div class="pad">
+    ${stepper(1)}
+    <h2>Your details</h2>
+    <p class="sub">Enter your legal name exactly as it appears on your ID.</p>
+    <label class="f">Full legal name</label>
+    <input class="f" id="k_name" placeholder="Jane Doe" value="${S.kyc.name||''}">
+    <div class="row">
+      <div><label class="f">Date of birth</label><input class="f" id="k_dob" placeholder="DD/MM/YYYY" value="${S.kyc.dob||''}"></div>
+    </div>
+    <label class="f">Residential address</label>
+    <input class="f" id="k_addr" placeholder="Street, city" value="${S.kyc.addr||''}">
+    <div style="height:20px"></div>
+    <button class="btn primary" onclick="saveDetails()">Continue</button>
+  </div>`;
+},
+
+kyc_doc(){return `
+  <div class="pad">
+    ${stepper(2)}
+    <h2>Choose your ID</h2>
+    <p class="sub">Which document will you use?</p>
+    ${docOption('passport','🛂','Passport','Best success rate')}
+    ${docOption('id','🪪','National ID card','')}
+    ${docOption('license','🚗','Driver’s licence','')}
+    <div style="height:16px"></div>
+    <button class="btn primary" id="doc_next" ${S.kyc.doc?'':'disabled'} onclick="go('kyc_capture')">Continue</button>
+  </div>`;
+},
+
+kyc_capture(){
+  const att=S.capAttempts;
+  const glare=att>0 && !S.kyc.captured;
+  return `
+  <div class="pad">
+    ${stepper(2)}
+    <h2>Photograph your ${docName()}</h2>
+    <p class="sub">Place your ID inside the frame. Make sure all four corners are visible and there's no glare.</p>
+    ${glare?`<div class="banner">⚠️ We couldn't read that one — <b>glare detected</b> in the top corner. Move away from direct light and retake.</div>`:''}
+    <div class="capframe" id="capframe">
+      <div class="guide"></div>
+      ${S.kyc.captured?`<div class="check" style="margin:0">✓</div>`:`
+        <div class="idcard">
+          NIMBUS BANK ID<br><br>
+          <b style="font-size:12px">${S.kyc.name||'JANE DOE'}</b><br>
+          <span style="opacity:.7">DOB ${S.kyc.dob||'01/01/1990'}</span>
+          <div class="ph"></div>
+          <div class="glare ${glare?'show':''}"></div>
+        </div>`}
+    </div>
+    <div style="height:16px"></div>
+    ${S.kyc.captured
+      ? `<button class="btn primary" onclick="go('kyc_selfie')">Looks good — continue</button>
+         <button class="btn ghost" style="margin-top:10px" onclick="retake()">Retake photo</button>`
+      : `<button class="btn primary" onclick="capture()">${att>0?'📸 Retake photo':'📸 Capture photo'}</button>
+         <button class="btn subtle" style="margin-top:10px" onclick="galleryUpload()">Upload from gallery instead</button>`
+    }
+    ${att>=2 && !S.kyc.captured?`<p class="small" style="text-align:center;margin-top:12px">Trouble scanning? <span class="link" onclick="galleryUpload()">Upload a saved photo</span> — it usually works first time.</p>`:''}
+  </div>`;
+},
+
+kyc_selfie(){return `
+  <div class="pad">
+    ${stepper(2)}
+    <h2>Now a quick selfie</h2>
+    <p class="sub">Center your face in the circle and hold still.</p>
+    <div class="capframe" style="height:230px;background:#0b1220">
+      <div class="face">${S.kyc.selfie?'🙂':'👤'}</div>
+    </div>
+    <div style="height:16px"></div>
+    ${S.kyc.selfie
+      ? `<button class="btn primary" onclick="submitKyc()">Submit for verification</button>`
+      : `<button class="btn primary" onclick="takeSelfie()">📸 Capture selfie</button>`}
+  </div>`;
+},
+
+kyc_processing(){setTimeout(()=>{finishKyc()},2600);return `
+  <div class="center">
+    <div class="spinner"></div>
+    <h2 style="margin-top:14px">Verifying your identity…</h2>
+    <p class="sub">This usually takes a few seconds. Please don't close the app.</p>
+  </div>`;
+},
+
+kyc_done(){return `
+  <div class="center">
+    <div class="check">✓</div>
+    <h1>You're verified!</h1>
+    <p class="sub">Your identity is confirmed. Next, link a bank so you can move money.</p>
+    <button class="btn primary" onclick="go('bank_list')">Link my bank</button>
+  </div>`;
+},
+
+bank_list(){
+  /* Invented banks, on purpose. A demo product that links a real named bank puts
+     that bank's name on a screen it never approved, in a deck that gets emailed
+     around — and it invites the room to argue about whether ING really behaves
+     like that instead of about the funnel. Fictional names cost nothing and the
+     exercise never once depends on which bank was picked. */
+  const banks=[['Banca Someșană','🟡'],['Vega Bank','🔵'],['Lumina','🟠'],['Orion','⚫'],['Aurora','🔴']];
+  return `
+  <div class="pad">
+    ${stepper(3)}
+    <h2>Link your bank</h2>
+    <p class="sub">Choose your bank to connect securely. Nimbus never sees your login.</p>
+    ${banks.map(b=>`<div class="bank ${S.bank===b[0]?'sel':''}" onclick="pickBank('${b[0]}')"><div class="ava" style="background:#f1f5f9">${b[1]}</div><b>${b[0]}</b><div style="margin-left:auto" class="small">${S.bank===b[0]?'✓':'›'}</div></div>`).join('')}
+    <div style="height:12px"></div>
+    <button class="btn primary" id="bank_next" ${S.bank?'':'disabled'} onclick="connectBank()">Connect ${S.bank||'bank'}</button>
+  </div>`;
+},
+
+bank_connecting(){setTimeout(()=>{finishBank()},2200);return `
+  <div class="center">
+    <div class="spinner"></div>
+    <h2 style="margin-top:14px">Connecting to ${S.bank}…</h2>
+    <p class="sub">Establishing a secure read-only connection.</p>
+  </div>`;
+},
+
+home(){
+  const avail = (S.plus? 320 : 200) - S.outstanding;
+  const unread = S.notifs.filter(n=>!n.seen).length;
+  return `
+  <div class="hero pad" style="border-radius:0 0 26px 26px;padding-bottom:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="brand" style="font-size:17px"><span class="logo" style="width:26px;height:26px">☁️</span> Nimbus</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="position:relative;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;cursor:pointer" onclick="openNotifs()">🔔${unread?`<span style="position:absolute;top:-2px;right:-2px;background:#EF4444;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:9px;display:grid;place-items:center;padding:0 3px">${unread}</span>`:''}</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;cursor:pointer" onclick="go('profile')">🙂</div>
+      </div>
+    </div>
+    <p style="color:#e0e7ff;margin:18px 0 2px;font-size:13px">Available balance</p>
+    <div style="color:#fff;font-size:40px;font-weight:800;letter-spacing:-.02em">$${S.balance.toFixed(2)}</div>
+    <div class="pill" style="background:rgba(255,255,255,.18);color:#fff;margin-top:6px;cursor:pointer" onclick="startTxn('advance')">⚡ Up to $${Math.max(0,avail)} instant advance available ›</div>
+  </div>
+  <div class="pad">
+    <div class="row" style="margin-top:-14px">
+      <button class="btn primary" onclick="startTxn('advance')">⚡ Get advance</button>
+      <button class="btn dark" onclick="startTxn('send')">➤ Send</button>
+    </div>
+    ${S.outstanding>0?`<div class="card" style="margin-top:14px;border:1px solid #fed7aa;background:#fff7ed">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><b>Advance to repay</b><div class="small">$${S.outstanding.toFixed(2)} · auto-collected on payday</div></div>
+        <button class="btn sm" style="background:var(--ink);color:#fff" onclick="repayAdvance()">Repay now</button>
+      </div></div>`:''}
+    ${!S.plus?`<div class="card" style="margin-top:16px;background:linear-gradient(135deg,#111827,#1f2937);color:#fff;border:0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><b>Nimbus+</b><div class="small" style="color:#cbd5e1">Bigger advances, zero fees — $4.99/mo</div></div>
+        <button class="btn sm" style="background:#fff;color:#111827" onclick="go('plus')">Upgrade</button>
+      </div></div>`:`<div class="card" style="margin-top:16px"><span class="pill good">★ Nimbus+ active</span></div>`}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 4px"><h2 style="font-size:17px;margin:0">Recent activity</h2>${S.txns.length?`<span class="link" onclick="go('activity')">See all</span>`:''}</div>
+    ${S.txns.length? txnList(4) : `<div class="card"><p class="small" style="margin:0">No transactions yet. Tap <b>Get advance</b> to try your first one.</p></div>`}
+  </div>`;
+},
+
+txn_amount(){
+  const t=S._pending;
+  const label=t==='advance'?'Instant advance':'Send money';
+  return `
+  <div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><span class="link" onclick="go('home')">‹ Back</span><b>${label}</b></div>
+    <p class="small">${t==='advance'?'Advance up to your available limit. Repaid automatically on payday.':'Enter an amount to send. Near-zero fees.'}</p>
+    <div class="amt" id="amt">$${(S._amt||0)}</div>
+    <div class="keypad">
+      ${[1,2,3,4,5,6,7,8,9,'.',0,'⌫'].map(k=>`<button onclick="key('${k}')">${k}</button>`).join('')}
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn primary" onclick="reviewTxn()">Review</button>
+  </div>`;
+},
+
+txn_review(){
+  const t=S._pending, amt=S._amt||0;
+  const fee = S.plus?0:(t==='advance'? +(amt*0.03).toFixed(2) : 0.20);
+  return `
+  <div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span class="link" onclick="go('txn_amount')">‹ Back</span><b>Review</b></div>
+    <div class="card">
+      <div class="fee"><span>${t==='advance'?'Advance amount':'Send amount'}</span><b>$${(+amt).toFixed(2)}</b></div>
+      <div class="fee"><span>Fee ${S.plus?'(Nimbus+)':''}</span><b>${fee===0?'Free':'$'+fee.toFixed(2)}</b></div>
+      <div class="fee" style="border:0"><span>Arrives</span><b>Instantly</b></div>
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn primary" onclick="confirmTxn(${fee})">${t==='advance'?'Get $'+(+amt).toFixed(2)+' now':'Send $'+(+amt).toFixed(2)}</button>
+  </div>`;
+},
+
+txn_done(){return `
+  <div class="center">
+    <div class="check">✓</div>
+    <h1>Done!</h1>
+    <p class="sub">${S._lastMsg||'Your money is on its way.'}</p>
+    <button class="btn primary" onclick="go('home')">Back to home</button>
+  </div>`;
+},
+
+plus(){return `
+  <div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="link" onclick="go('home')">‹ Back</span></div>
+    <div class="card" style="background:linear-gradient(135deg,#111827,#1f2937);color:#fff;border:0;text-align:center">
+      <div style="font-size:34px">★</div>
+      <h2 style="color:#fff">Nimbus+</h2>
+      <p class="sub" style="color:#cbd5e1">Bigger advances, zero fees, priority support.</p>
+      <div style="font-size:28px;font-weight:800">$4.99<span style="font-size:14px;font-weight:500">/mo</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn primary" onclick="subscribePlus()">Start Nimbus+</button>
+  </div>`;
+},
+
+activity(){return `<div class="pad"><h2>Activity</h2>${S.txns.length?txnList():`<div class="card" style="text-align:center;padding:26px"><div style="font-size:30px">📭</div><p class="small" style="margin:8px 0 0">No transactions yet.</p></div>`}</div>`;},
+
+card(){
+  const active = ['txn','retain'].includes(S.stage) || S.txns.length>0;
+  if(!active) return `<div class="pad"><h2>Card</h2>
+    <div class="card" style="text-align:center;padding:30px 18px">
+      <div style="font-size:34px">💳</div><b>Your virtual card is locked</b>
+      <p class="small" style="margin:8px 0 16px">Complete your first transaction to unlock a virtual card for online spending.</p>
+      <button class="btn primary" onclick="startTxn('advance')">Make your first transaction</button>
+    </div></div>`;
+  const f=S.cardFrozen, sh=S.cardShown;
+  return `<div class="pad"><h2>Card</h2>
+    <div class="card balance" style="height:180px;display:flex;flex-direction:column;justify-content:space-between;opacity:${f?0.55:1}">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span>Nimbus virtual card</span>${f?`<span class="pill" style="background:rgba(255,255,255,.25);color:#fff">❄️ Frozen</span>`:''}</div>
+      <div style="letter-spacing:3px;font-size:18px">${sh?'4192 8830 5521 4192':'•••• •••• •••• 4192'}</div>
+      <div style="display:flex;gap:22px;font-size:12px"><span>EXP ${sh?'08/29':'••/••'}</span><span>CVV ${sh?'481':'•••'}</span></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn ghost" onclick="freezeCard()">${f?'☀️ Unfreeze':'❄️ Freeze'}</button>
+      <button class="btn ghost" onclick="toggleCardDetails()">${sh?'🙈 Hide':'👁 Details'}</button>
+    </div>
+    <div style="height:10px"></div>
+    <button class="btn subtle" onclick="addToWallet()">＋ Add to Apple / Google Wallet</button>
+    <div class="card" style="margin-top:14px">
+      <div class="lrow" style="cursor:pointer" onclick="go('card_settings')"><div class="ava" style="background:#eef2ff">⚙️</div><div><b>Card settings</b><div class="small">Limits &amp; online payments</div></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="toast('A replacement card would be mailed in 3–5 days.')"><div class="ava" style="background:#eef2ff">🔁</div><div><b>Replace card</b><div class="small">Lost or damaged</div></div><div style="margin-left:auto" class="small">›</div></div>
+    </div></div>`;
+},
+
+profile(){
+  const verified=['kyc','bank','txn','retain'].includes(S.stage);
+  const unread=S.notifs.filter(n=>!n.seen).length;
+  return `<div class="pad">
+    <h2>Profile</h2>
+    <div class="card"><div class="lrow"><div class="ava" style="background:#eef2ff">🙂</div><div><b>${S.kyc.name||S.user?.email||'Your account'}</b><div class="small">${S.user?.email||S.user?.phone||''}</div></div></div></div>
+    <div class="card" style="margin-top:12px">
+      <div class="lrow" style="cursor:pointer" onclick="go('identity')"><div class="ava" style="background:${verified?'#ecfdf5':'#fffbeb'}">🛡️</div><div><b>Identity</b><div class="small">${verified?'Verified ✓':'Not verified — tap to complete'}</div></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="go('bank_list')"><div class="ava" style="background:${S.bank?'#ecfdf5':'#fffbeb'}">🏦</div><div><b>Bank</b><div class="small">${S.bank?S.bank+' ✓ · tap to change':'Not linked'}</div></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="openNotifs()"><div class="ava" style="background:#eef2ff">🔔</div><div><b>Notifications</b><div class="small">${unread} unread</div></div><div style="margin-left:auto" class="small">›</div></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="lrow" style="cursor:pointer" onclick="go('support')"><div class="ava" style="background:#eef2ff">💬</div><div><b>Help &amp; support</b></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="go('settings')"><div class="ava" style="background:#eef2ff">⚙️</div><div><b>Settings</b></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="logout()"><div class="ava" style="background:#fef2f2">↩︎</div><div><b>Log out</b></div><div style="margin-left:auto" class="small">›</div></div>
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn ghost" onclick="resetAll()">Reset demo</button>
+  </div>`;
+},
+
+login(){return `
+  <div class="hero pad" style="padding-bottom:20px"><div class="brand"><span class="logo">☁️</span> Nimbus</div></div>
+  <div class="pad">
+    <div class="card" style="margin-top:-26px">
+      <h2>Welcome back</h2><p class="sub">Log in to your account.</p>
+      <label class="f">Email</label><input class="f" id="li_email" type="email" placeholder="you@email.com" value="${S.user?.email||''}">
+      <label class="f">Password</label><input class="f" id="li_pass" type="password" placeholder="Your password">
+      <div style="height:18px"></div>
+      <button class="btn primary" onclick="doLogin()">Log in</button>
+      <p class="small" style="text-align:center;margin-top:12px"><span class="link" onclick="toast('A reset link would be emailed to you.')">Forgot password?</span></p>
+    </div>
+    <p class="small" style="text-align:center;margin-top:14px">New here? <span class="link" onclick="go('signup')">Create an account</span></p>
+  </div>`;
+},
+
+txn_recipient(){
+  const contacts=[['Alex Pop','🧑'],['Maria I.','👩'],['Dad','👨'],['Ana','👧']];
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span class="link" onclick="go('home')">‹ Back</span><b>Send money</b></div>
+    <p class="small">Who are you sending to?</p>
+    <label class="f">Phone or email</label>
+    <input class="f" id="rc_to" placeholder="+40 7xx… or a name" value="${S.recipient||''}">
+    <p class="small" style="margin:16px 0 6px;font-weight:700;color:var(--slate)">Recent contacts</p>
+    ${contacts.map(c=>`<div class="bank" onclick="pickContact('${c[0]}')"><div class="ava" style="background:#f1f5f9">${c[1]}</div><b>${c[0]}</b><div style="margin-left:auto" class="small">›</div></div>`).join('')}
+    <div style="height:8px"></div>
+    <button class="btn primary" onclick="setRecipient()">Continue</button>
+  </div>`;
+},
+
+txn_detail(){
+  const t=S.txns[S._openTxn]; if(!t)return `<div class="pad"><span class="link" onclick="go('activity')">‹ Back</span><p class="small">Not found.</p></div>`;
+  const adv=t.type==='advance';
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><span class="link" onclick="go('activity')">‹ Back</span><b>Transaction</b></div>
+    <div style="text-align:center;padding:14px 0 18px">
+      <div class="ava" style="width:56px;height:56px;font-size:26px;border-radius:16px;background:${adv?'#eef2ff':'#ecfeff'};margin:0 auto">${adv?'⚡':'➤'}</div>
+      <div class="amt" style="margin:12px 0 2px;color:${adv?'#047857':'#0f172a'}">${adv?'+':'−'}$${t.amt.toFixed(2)}</div>
+      <p class="small" style="margin:0">${adv?'Instant advance':(t.to?'Sent to '+t.to:'Money sent')} · ${t.when}</p>
+    </div>
+    <div class="card">
+      <div class="fee"><span>Type</span><b>${adv?'Instant advance':'Transfer'}</b></div>
+      <div class="fee"><span>Fee</span><b>${t.fee?'$'+(+t.fee).toFixed(2):'Free'}</b></div>
+      ${t.to?`<div class="fee"><span>To</span><b>${t.to}</b></div>`:''}
+      <div class="fee"><span>Status</span><b style="color:#047857">Completed</b></div>
+      <div class="fee" style="border:0"><span>Reference</span><b>NMB-${1000+S._openTxn}</b></div>
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn ghost" onclick="toast('Receipt saved to your files (demo).')">Download receipt</button>
+  </div>`;
+},
+
+notifications(){
+  const list=S.notifs.slice().reverse();
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="link" onclick="go(S._backTo||'home')">‹ Back</span><b>Notifications</b></div>
+    ${list.length?list.map(n=>`<div class="card" style="margin-bottom:10px"><b>${n.title}</b><div class="small" style="margin-top:2px">${n.body}</div></div>`).join(''):`<div class="card" style="text-align:center;padding:26px"><div style="font-size:30px">🔕</div><p class="small" style="margin:8px 0 0">You're all caught up.</p></div>`}
+  </div>`;
+},
+
+support(){
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="link" onclick="go('profile')">‹ Back</span><b>Help &amp; support</b></div>
+    <button class="btn primary" onclick="toast('A support agent would join the chat here.')">💬 Start live chat</button>
+    <p class="small" style="margin:18px 0 8px;font-weight:700;color:var(--slate)">Common questions</p>
+    ${FAQS.map((f,i)=>`<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="faqAns(${i})"><b style="font-size:14px">${f[0]}</b></div>`).join('')}
+  </div>`;
+},
+
+settings(){
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="link" onclick="go('profile')">‹ Back</span><b>Settings</b></div>
+    <div class="card">
+      ${toggleRow('Push notifications',true)}
+      ${toggleRow('Face ID login',true)}
+      ${toggleRow('Marketing emails',false)}
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="lrow" style="cursor:pointer" onclick="toast('Language: English (demo).')"><div class="ava" style="background:#eef2ff">🌐</div><div><b>Language</b><div class="small">English</div></div><div style="margin-left:auto" class="small">›</div></div>
+      <div class="lrow" style="cursor:pointer" onclick="toast('You would be taken to the privacy policy.')"><div class="ava" style="background:#eef2ff">🔒</div><div><b>Privacy &amp; data</b></div><div style="margin-left:auto" class="small">›</div></div>
+    </div>
+  </div>`;
+},
+
+card_settings(){
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="link" onclick="go('card')">‹ Back</span><b>Card settings</b></div>
+    <div class="card">
+      ${toggleRow('Online payments',true)}
+      ${toggleRow('International payments',false)}
+      ${toggleRow('ATM withdrawals',true)}
+    </div>
+    <div class="card" style="margin-top:12px"><div class="lrow"><div><b>Monthly limit</b><div class="small">$2,000</div></div><span class="link" style="margin-left:auto" onclick="toast('Limit editor (demo).')">Edit</span></div></div>
+  </div>`;
+},
+
+identity(){
+  const verified=['kyc','bank','txn','retain'].includes(S.stage);
+  return `<div class="pad">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><span class="link" onclick="go('profile')">‹ Back</span><b>Identity</b></div>
+    <div class="card" style="text-align:center;padding:24px">
+      <div class="ava" style="width:56px;height:56px;font-size:26px;border-radius:16px;background:${verified?'#ecfdf5':'#fffbeb'};margin:0 auto">🛡️</div>
+      <h2 style="margin:12px 0 4px">${verified?'Identity verified':'Not verified yet'}</h2>
+      <p class="sub">${verified?'Your identity was confirmed — you can move money freely.':'Verify your identity to unlock transfers and advances.'}</p>
+      ${verified?`<div class="card" style="text-align:left"><div class="fee"><span>Name</span><b>${S.kyc.name||'—'}</b></div><div class="fee"><span>Document</span><b>${docName()}</b></div><div class="fee" style="border:0"><span>Status</span><b style="color:#047857">Approved</b></div></div>`:`<button class="btn primary" onclick="go('kyc_intro')">Verify now</button>`}
+    </div>
+  </div>`;
+},
+};
+
+/* ---------------- Fragments ---------------- */
+function stepper(i){return `<div class="steps">${[0,1,2,3].map(n=>`<div class="${n<i?'done':n===i?'on':''}"></div>`).join('')}</div>`;}
+function docOption(id,ic,name,tag){return `<div class="bank ${S.kyc.doc===id?'sel':''}" onclick="pickDoc('${id}')"><div class="ava" style="background:#f1f5f9">${ic}</div><div><b>${name}</b>${tag?`<div class="small">${tag}</div>`:''}</div><div style="margin-left:auto" class="small">${S.kyc.doc===id?'✓':'›'}</div></div>`;}
+function docName(){return {passport:'passport',id:'ID card',license:'licence'}[S.kyc.doc]||'ID';}
+function txnList(limit){
+  let rows=S.txns.map((t,i)=>({t,i})).reverse();
+  if(limit) rows=rows.slice(0,limit);
+  return `<div class="card">${rows.map(({t,i})=>`<div class="lrow" style="cursor:pointer" onclick="openTxn(${i})"><div class="ava" style="background:${t.type==='advance'?'#eef2ff':'#ecfeff'}">${t.type==='advance'?'⚡':'➤'}</div><div><b>${t.type==='advance'?'Instant advance':(t.to?'Sent to '+t.to:'Sent')}</b><div class="small">${t.when}</div></div><b style="margin-left:auto;color:${t.type==='advance'?'#047857':'#0f172a'}">${t.type==='advance'?'+':'−'}$${t.amt.toFixed(2)}</b></div>`).join('')}</div>`;
+}
+function navHTML(){const tabs=[['home','🏠','Home'],['activity','📊','Activity'],['card','💳','Card'],['profile','👤','Profile']];
+  return `<div class="nav">${tabs.map(t=>`<a class="${S.screen===t[0]?'on':''}" onclick="go('${t[0]}')"><span class="ic">${t[1]}</span>${t[2]}</a>`).join('')}</div>`;}
+function toggleRow(label,on){return `<div class="lrow"><div><b>${label}</b></div><div class="tgl ${on?'on':''}" style="margin-left:auto" onclick="this.classList.toggle('on');toast('Setting updated')"></div></div>`;}
+const FAQS=[["How do advances work?","Borrow up to your limit; it's repaid automatically on your next payday."],["Why was my ID rejected?","Usually glare or a blurry photo. Retake in good light, or upload from your gallery."],["Which banks are supported?","Most major banks. If yours isn't listed, tell us and we'll add it."],["What does Nimbus+ include?","Bigger advances, zero fees and priority support — $4.99/mo."]];
+
+/* ---------------- Actions ---------------- */
+function doSignup(){
+  const phone=val('su_phone'),email=val('su_email'),pass=val('su_pass');
+  if(!email||!pass){toast('Enter an email and password to continue');return;}
+  if(pass.length<8){toast('Password must be at least 8 characters');return;}
+  S.user={phone,email};reach('signup');emit('signup_completed',{channel:'demo'});
+  go('kyc_intro');
+}
+function skipKyc(){toast('You can verify later from Home — but you can\'t move money yet.');go('home');}
+function saveDetails(){
+  S.kyc.name=val('k_name');S.kyc.dob=val('k_dob');S.kyc.addr=val('k_addr');
+  if(!S.kyc.name){toast('Enter your name as it appears on your ID');return;}
+  emit('kyc_started');save();go('kyc_doc');
+}
+function pickDoc(id){S.kyc.doc=id;save();render();}
+/* The glare loop is the emotional half of the whole day: a room that has felt the
+   retake argues about the ID-photo screen differently from a room that has only
+   read a bar chart. So the odds here are not decoration — they are lifted straight
+   off the dashboard's ID-photo-retry distribution, over the 29,120 users who reach
+   that step: 11,887 never retry, 7,130 retry once, 4,786 twice, 5,317 three or more.
+
+   That means the per-attempt probability of another glare is NOT constant, and the
+   old single `Math.random()<0.6` could only ever produce zero retries or one. It
+   got the 41%-sail-straight-through share right and everything above it wrong: the
+   dashboard says a third of the people who reach this screen shoot it three times
+   or more, the App Store review on the Voice-of-customer view says six, and nobody
+   in the room could reach either. These are the conditional hazards that reproduce
+   all four buckets — 17233/29120, 10103/17233, 5317/10103 — with the third rate
+   carried onward, which is what makes "3+" an open-ended tail rather than exactly
+   three, and puts the six-retake review inside the range of something that can
+   actually happen to a participant.
+
+   Do not "fix" the 41% who sail through. They are the point of the show of hands
+   at the debrief: four in ten hands stay down, and that is the difference between
+   an average and a distribution, demonstrated on the room instead of asserted. */
+const GLARE_HAZARD=[17233/29120, 10103/17233, 5317/10103];
+const GLARE_MAX_ATTEMPTS=6;   // the ★☆☆☆☆ review says six; nobody gets stuck past it
+function glareOdds(attempt){
+  if(attempt>=GLARE_MAX_ATTEMPTS) return 0;
+  return GLARE_HAZARD[Math.min(attempt,GLARE_HAZARD.length)-1];
+}
+function capture(){
+  S.capAttempts++;
+  if(Math.random()<glareOdds(S.capAttempts)){ emit('id_capture_failed',{reason:'glare',attempt:S.capAttempts}); save(); render(); toast('Glare detected — please retake'); }
+  else { S.kyc.captured=true; emit('id_captured',{attempts:S.capAttempts}); save(); render(); }
+}
+function galleryUpload(){S.kyc.captured=true;emit('id_captured',{method:'gallery',attempts:S.capAttempts});save();render();toast('Photo uploaded ✓');}
+function retake(){S.kyc.captured=false;save();render();}
+function takeSelfie(){S.kyc.selfie=true;emit('selfie_captured');save();render();}
+function submitKyc(){emit('kyc_submitted');go('kyc_processing');}
+function finishKyc(){reach('kyc');emit('kyc_completed',{doc:S.kyc.doc});go('kyc_done');}
+function pickBank(b){S.bank=b;save();render();}
+function connectBank(){emit('bank_connect_started',{bank:S.bank});go('bank_connecting');}
+function finishBank(){reach('bank');emit('bank_linked',{bank:S.bank});pushNotif('Welcome to Nimbus','Your account is ready — get your first advance in seconds.');go('home');toast('Bank linked ✓ You\'re ready to move money');}
+
+function startTxn(type){
+  if(!['kyc','bank','txn','retain'].includes(S.stage)){toast('Verify your identity first to move money');go('kyc_intro');return;}
+  if(!S.bank){toast('Link a bank first');go('bank_list');return;}
+  S._pending=type;S._amt=0;
+  if(type==='send'){S.recipient=null;save();go('txn_recipient');return;}
+  save();go('txn_amount');
+}
+function openTxn(i){S._openTxn=i;save();go('txn_detail');}
+function freezeCard(){S.cardFrozen=!S.cardFrozen;emit(S.cardFrozen?'card_frozen':'card_unfrozen');save();render();toast(S.cardFrozen?'Card frozen ❄️':'Card unfrozen ☀️');}
+function toggleCardDetails(){S.cardShown=!S.cardShown;if(S.cardShown)emit('card_details_viewed');save();render();}
+function addToWallet(){emit('added_to_wallet');toast('Added to your wallet ✓ (demo)');}
+function repayAdvance(){if(S.outstanding<=0){toast('Nothing to repay.');return;}const a=S.outstanding;S.outstanding=0;emit('advance_repaid',{amount:a});save();render();toast('Advance repaid ✓');}
+function openNotifs(){S._backTo=S.screen;S.notifs.forEach(n=>n.seen=true);save();go('notifications');}
+function doLogin(){const email=val('li_email');if(!email){toast('Enter your email to log in');return;}if(!['kyc','bank','txn','retain'].includes(S.stage)){jump('home');}S.user=S.user||{};S.user.email=email;save();go('home');toast('Welcome back ✓');}
+function pickContact(name){S.recipient=name;const e=document.getElementById('rc_to');if(e)e.value=name;save();}
+function setRecipient(){const to=val('rc_to')||S.recipient;if(!to){toast("Enter who you're sending to");return;}S.recipient=to;S._pending='send';S._amt=0;save();go('txn_amount');}
+function logout(){S.screen='login';save();go('login');toast('Logged out');}
+function faqAns(i){toast(FAQS[i][1]);}
+function pushNotif(title,body){if(!Array.isArray(S.notifs))S.notifs=[];S.notifs.push({title,body,seen:false});}
+function key(k){
+  let s=String(S._amt||0);
+  if(k==='⌫'){s=s.length<=1?'0':s.slice(0,-1);}
+  else if(k==='.'){if(!s.includes('.'))s=s+'.';}
+  else {s = (s==='0')? String(k): s+String(k);}
+  S._amt=s;save();document.getElementById('amt').textContent='$'+s;
+}
+function reviewTxn(){const a=parseFloat(S._amt)||0;if(a<=0){toast('Enter an amount');return;}const lim=S.plus?320:200;if(S._pending==='advance'&&a>lim){toast('Above your $'+lim+' limit — try Nimbus+ for more');return;}S._amt=a;save();go('txn_review');}
+function confirmTxn(fee){
+  const a=S._amt, first = !S.txns.length;
+  if(S._pending==='advance'){S.balance=+(S.balance+a).toFixed(2);S.outstanding=+(S.outstanding+a).toFixed(2);}
+  else {S.balance=Math.max(0,+(S.balance-a-fee).toFixed(2));}
+  S.txns.push({type:S._pending,amt:a,fee:fee,to:S._pending==='send'?S.recipient:null,when:'Just now'});
+  emit(first?'first_transaction':'transaction',{type:S._pending,amount:a,fee});
+  if(first)reach('txn'); else reach('retain');
+  S._lastMsg = S._pending==='advance'? `$${a.toFixed(2)} added to your balance.` : `$${a.toFixed(2)} sent${S.recipient?' to '+S.recipient:''}.`;
+  pushNotif(S._pending==='advance'?'Advance received':'Money sent', S._lastMsg);
+  S.recipient=null;
+  save();go('txn_done');
+}
+function subscribePlus(){S.plus=true;emit('subscribed_plus',{price:4.99});pushNotif('Nimbus+ active','Enjoy bigger advances and zero fees.');save();go('home');toast('Welcome to Nimbus+ ★');}
+
+/* jump = facilitator shortcut to a ready-to-use account */
+function jump(target){
+  S.user=S.user||{phone:'+40 720 000 000',email:'demo@nimbus.app'};
+  S.kyc={name:'Jane Doe',dob:'01/01/1990',doc:'passport',captured:true,selfie:true};
+  S.bank=S.bank||'Banca Someșană';S.stage='bank';S.capAttempts=2;
+  if(!S.notifs.length)pushNotif('Welcome to Nimbus','Your account is ready — get your first advance in seconds.');
+  save();go(target||'home');
+}
+
+/* ---------------- Helpers ---------------- */
+function val(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+let _tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2600);}
+let _rst=null;
+function resetAll(){
+  const btn=event&&event.target;
+  if(_rst){clearTimeout(_rst);_rst=null;localStorage.removeItem(KEY);S=load();_c=0;go('landing');if(btn)btn.textContent='↺ Reset the demo (clear this device)';return;}
+  if(btn){btn.textContent='⚠️ Tap again to confirm reset';}
+  _rst=setTimeout(()=>{_rst=null;if(btn)btn.textContent='↺ Reset the demo (clear this device)';},3000);
+}
+
+/* ---------------- Facilitator dock ---------------- */
+function paintDock(){
+  const cur=FUNNEL.findIndex(f=>f.id===S.stage);
+  document.getElementById('stages').innerHTML=FUNNEL.map((f,i)=>`<div class="stage ${i<cur?'done':i===cur?'cur':''}"><span class="dot"></span>${f.label}</div>`).join('');
+  const ev=document.getElementById('events');
+  ev.innerHTML = S.events.length? S.events.slice(-14).map(e=>`<div class="evt">${e.t} &nbsp;${e.ev}${e.meta?` <span style="color:#475569">${JSON.stringify(e.meta)}</span>`:''}</div>`).join('') : `<span class="small" style="color:#64748b">No events yet — start the flow.</span>`;
+}
+let dockHidden=true;
+function showDock(){dockHidden=false;const d=document.getElementById('facDock');if(d)d.style.display='';}
+function toggleDock(){const d=document.getElementById('facDock');dockHidden=!dockHidden;d.style.display=dockHidden?'none':'';}
+
+/* boot */
+if(!S.events.length)emit('app_open');
+render();
+/* Facilitator panel is OFF by design. A facilitator turns it on by adding ?facilitator=1 (or ?fac=1) to the URL. */
+(function(){try{const p=new URLSearchParams(location.search);if(p.has('facilitator')||p.has('fac'))showDock();}catch(e){}})();
+</script>
+</body>
+</html>

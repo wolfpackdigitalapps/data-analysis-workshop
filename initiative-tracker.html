@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Analysis Workshop — Initiative Tracker</title>
+<style>
+:root{--indigo:#4F46E5;--sky:#0EA5E9;--ink:#0f172a;--slate:#475569;--muted:#94a3b8;--line:#e2e8f0;
+  --bg:#eef2f7;--card:#fff;--good:#0ca30c;--bad:#d03b3b;--warn:#eda100;--grad:linear-gradient(135deg,#4F46E5,#0EA5E9);}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+.topbar{position:sticky;top:0;z-index:30;background:#0f172a;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.topbar .t{font-weight:800;font-size:16px;display:flex;align-items:center;gap:9px}
+.topbar .t .m{width:24px;height:24px;border-radius:7px;background:var(--grad);display:grid;place-items:center;font-size:13px}
+.topbar select.grp,.topbar input.grp{background:#1e293b;border:1px solid #334155;color:#fff;border-radius:8px;padding:8px 11px;font-size:14px;font-family:inherit;font-weight:600}
+.topbar .sp{flex:1}
+.topbar button{background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.topbar button:hover{background:#334155}
+.topbar button.pri{background:var(--grad);border:0;color:#fff}
+.wrap{max-width:960px;margin:0 auto;padding:24px 20px 90px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:20px}
+.intro h1{margin:0 0 6px;font-size:26px;letter-spacing:-.02em}
+.intro p{margin:0 0 10px;color:var(--slate)}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.chips a{background:#eef2ff;color:var(--indigo);font-weight:700;font-size:13px;padding:8px 13px;border-radius:9px;text-decoration:none;border:1px solid #dbe4ff;cursor:pointer}
+/* Belt and braces: [hidden] is only a UA rule, so any author rule that sets
+   display on a chip would quietly un-hide the facilitator-only prefill. */
+.chips a[hidden]{display:none}
+.viewtoggle{display:inline-flex;background:#eef2f7;border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;margin-bottom:18px}
+.viewtoggle button{border:0;background:transparent;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--slate);cursor:pointer;font-family:inherit}
+.viewtoggle button.on{background:#fff;color:var(--indigo);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.card>h2{margin:0 0 3px;font-size:20px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.card .badge{background:var(--grad);color:#fff;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px}
+.card .goal{color:var(--slate);font-size:14px;margin:0 0 16px}
+label.fl{display:block;font-weight:700;font-size:12.5px;color:var(--slate);margin:12px 0 5px}
+textarea,input.tx,select.sel{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 11px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+textarea:focus,input.tx:focus,select.sel:focus,input:focus,select:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+textarea{resize:vertical;min-height:52px;line-height:1.5}
+.objgrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px}
+.objgrid .full{grid-column:1/-1}
+@media(max-width:720px){.objgrid{grid-template-columns:1fr 1fr}}
+.gapbox{display:flex;align-items:center;gap:12px;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:14px;flex-wrap:wrap}
+.gapbox .big{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.gapbox .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+/* initiative cards */
+.init{border:1.5px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;background:#fff}
+.init .ihead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.prio{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px;background:#eef2ff;color:var(--indigo);border:1px solid #dbe4ff}
+.prio.p1{background:var(--grad);color:#fff;border:0}
+/* min-width:0 is load-bearing: flex:1 means basis 0, but a flex item's default
+   min-width is auto, and for an <input> that is the browser's intrinsic ~177px
+   text-field width. Without this the field cannot shrink and pushes the row,
+   the card and the page past the width of a phone. */
+.init .iname{flex:1;min-width:0;font-weight:700;font-size:15px;border:1.5px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit}
+.scorerow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.scorerow .fld{display:flex;flex-direction:column;gap:4px}
+.scorerow .fld .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+.scorerow input,.scorerow select{border:1px solid var(--line);border-radius:7px;padding:7px;font-size:13px;font-family:inherit;background:#fff}
+.scorerow .mini{width:58px;text-align:center}
+.scorerow .midi{width:72px}
+.icecalc{background:var(--grad);color:#fff;border-radius:9px;padding:6px 12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;min-width:56px}
+.icecalc .k{font-size:9.5px;opacity:.85;text-transform:uppercase;letter-spacing:.05em;display:block;font-weight:700}
+.icecalc .v{font-size:17px;line-height:1}
+button.del{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px}
+button.del:hover{color:var(--bad)}
+.btnrow{margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+button.act{background:#eef2ff;color:var(--indigo);border:1px solid #dbe4ff;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+button.act:hover{background:#e0e7ff}
+.cover{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;margin-top:4px}
+.cover.short{background:#fef2f2;border-color:#fecaca}
+/* econ table */
+.econtbl{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+.econtbl th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px;vertical-align:bottom}
+.econtbl td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.econtbl td.n,.econtbl th:not(:first-child){text-align:right}
+.econtbl tr.tot td{border-top:2px solid var(--line);border-bottom:none;background:#f8fafc}
+.econwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:720px){
+  .econtbl{font-size:12.5px}
+  .econtbl th,.econtbl td{padding:6px 6px;white-space:nowrap}
+}
+@media(max-width:430px){
+  /* Breathing room on a phone: the chrome around the fields was eating the
+     width the fields needed. */
+  .wrap{padding:20px 12px 90px}
+  .card{padding:16px 14px}
+  .init{padding:12px}
+  .init .ihead{gap:7px}
+  .scorerow{gap:8px;padding:9px 10px}
+  .scorerow .fld{flex:1 1 auto;min-width:0}
+  .scorerow input,.scorerow select{width:100%;min-width:0}
+}
+.ok{color:var(--good)} .no{color:var(--bad)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#eef2ff;color:var(--indigo);margin:2px 4px 2px 0}
+.hint{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:11px 14px;font-size:13px;margin-top:14px;line-height:1.45}
+.exampletag{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:16px;line-height:1.5}
+.saveflash{position:fixed;bottom:16px;right:16px;background:#0f172a;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:40}
+.saveflash.show{opacity:.95}
+#wbtip{position:fixed;pointer-events:none;background:#111827;color:#fff;padding:10px 13px;border-radius:9px;font-size:12.5px;font-weight:500;line-height:1.45;opacity:0;transition:opacity .12s;z-index:80;max-width:300px;border-top:3px solid var(--indigo);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#wbtip.show{opacity:1}
+#wbtip .th2{display:block;color:#a5b4fc;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+[data-edu]{cursor:help}
+.eduu{border-bottom:1.5px dotted #a5b4fc;padding-bottom:1px;cursor:help}
+
+.ro input,.ro textarea,.ro select{background:#fbfcfe!important;color:var(--ink);pointer-events:none;border-color:#eef1f6!important}
+/* name modal */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal .box{background:#fff;border-radius:18px;padding:28px 26px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal .box .m{width:44px;height:44px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-size:22px;margin-bottom:14px}
+.modal h3{margin:0 0 6px;font-size:21px;letter-spacing:-.01em}
+.modal p{margin:0 0 16px;color:var(--slate);font-size:14px}
+.modal input{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:13px;font-size:16px;font-family:inherit;margin-bottom:14px}
+.modal input:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+.modal .row{display:flex;gap:10px;justify-content:flex-end}
+.modal button{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:#fff;color:var(--slate)}
+.modal button.pri{background:var(--grad);color:#fff;border:0}
+@media print{
+  .topbar,.btnrow,.chips,.hint,.viewtoggle,.modal,button.del,button{display:none!important}
+  body{background:#fff}
+  .card,.intro{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  textarea,input,select{border:1px solid #bbb!important}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="t"><span class="m">🎯</span> Initiative Tracker</div>
+  <select class="grp" id="groupSel" onchange="onGroupSel(this.value)" title="Switch group — each group's plan is kept separately on this device"></select>
+  <div class="sp"></div>
+  <button onclick="window.print()">🖨️ Print / PDF</button>
+  <button onclick="exportJSON()">⬇️ Export</button>
+  <button onclick="importJSON()">⬆️ Import</button>
+  <button onclick="renameCurrent()" title="Rename this group">✏️ Rename</button>
+  <button onclick="deleteGroup()" title="Delete this group entirely">🗑️ Delete</button>
+</div>
+<input type="file" id="file" accept="application/json" style="display:none" onchange="loadFile(event)">
+<div class="wrap">
+  <div class="intro">
+    <h1>Initiative Tracker</h1>
+    <p><b>Objective → Initiatives → Actions.</b> Turn the bottleneck you diagnosed into a prioritised plan. It's only <b>done</b> when the number moves — not when the work ships. Everything saves automatically in this browser.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:-4px">👥 <b>Multiple groups on one computer?</b> Use the <b>group switcher</b> (top-left) — each group's plan is stored separately. <b>＋ New group…</b> starts a fresh one and asks for its name.</p>
+    <div class="chips">
+      <!-- Hidden unless the page was opened with ?facilitator=1. One click on this used to
+           drop the graded Exercise-4 answer straight into a group's own plan — the model
+           objective, the four initiatives with their scores, weeks and lifts, all of it —
+           which is the whole of the exercise. It ships hidden so a failed script leaks
+           nothing; the worked example is still readable on its own read-only tab. -->
+      <a id="prefillChip" hidden onclick="loadExampleIntoPlan()">✨ Prefill the Nimbus worked example</a>
+      <a href="nimbus-app.html" target="_blank">📱 Open the app</a>
+      <a href="nimbus-analytics.html" target="_blank" data-keepmode>📊 Open the analytics</a>
+    </div>
+  </div>
+  <div class="viewtoggle">
+    <button id="vtPlan" class="on" onclick="setView('plan')">📝 Your plan</button>
+    <button id="vtExample" onclick="setView('example')">📘 Worked example (Nimbus)</button>
+  </div>
+  <div id="content"></div>
+</div>
+<div class="saveflash" id="flash">Saved ✓</div>
+<div id="modalMount"></div>
+
+<script>
+/* ---------- model ---------- */
+const clone=o=>JSON.parse(JSON.stringify(o));
+// Safe in attribute AND text position, because it is used in both (ship order
+// and the payback table print names through it). & first, or it re-escapes the
+// entities the later replacements introduce.
+const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const DEFAULT={
+  group:'',
+  // scope/scopeN: a KPI is a rate, and a rate is measured on a POPULATION. The
+  // tracker used to ask for "$ per +1pp" with nowhere to say per point OF WHAT,
+  // ON WHOM — which is the exact mistake Exercise 4 spends a page correcting,
+  // shipped in the tool the deck hands people at the end of Exercise 4. A point
+  // on 32,000 sign-ups and a point on 5,400 driving-licence uploads are the same
+  // sentence and a 5.9x difference in money.
+  obj:{kpi:'',scope:'',scopeN:'',base:'',target:'',deadline:'',owner:'',current:'',status:'On track',guard:'',stop:''},
+  // The two assumptions that turn a lift into a business case. Kept at plan
+  // level (not per initiative) because they are properties of the team and the
+  // product, not of the bet. Both are editable — arguing about them is the
+  // exercise.
+  econ:{rate:'4000', vpp:'', ramp:'2.7'},
+  inits:[
+    {name:'',hyp:'',actions:'',pp:'',eff:'M',wk:'',i:'',c:'',e:'',owner:'',status:'Not started'},
+    {name:'',hyp:'',actions:'',pp:'',eff:'M',wk:'',i:'',c:'',e:'',owner:'',status:'Not started'},
+    {name:'',hyp:'',actions:'',pp:'',eff:'S',wk:'',i:'',c:'',e:'',owner:'',status:'Not started'},
+  ],
+};
+/* the demo product's model answer — matches the analytics + client deck */
+const EXAMPLE={
+  group:'Worked example',
+  // The scope is what makes $884 defensible rather than asserted: 1pp of 32,000
+  // sign-ups = 320 more verified users a month, 52.5% activate = 168, each worth
+  // $5.26 over its life = $884. Change the scope and that number has to change
+  // with it — which is the whole point of putting the field next to the money.
+  obj:{kpi:'Sign-up → Identity-verified (KYC) completion rate', scope:'All sign-ups', scopeN:'32000', base:'40', target:'60', deadline:'End of Q3', owner:'Product', current:'40', status:'On track',
+    // Checkable in the analytics, not invented: Advance Taken 4,570 and On-time
+    // advance repayers 4,295 are both in the events table. 4,295/4,570 = 94.0%.
+    // The 92% floor is a judgement and is written as one.
+    guard:'On-time advance repayment rate', stop:'94.0% today (4,295 of 4,570) — stop and reassess below 92%, reviewed weekly'},
+  econ:{rate:'4000', vpp:'884', ramp:'2.7'},
+  inits:[
+    {name:'Rebuild ID-capture UX', hyp:'61% of KYC abandonment happens on the ID-photo screen — auto-capture and on-screen guidance remove the friction that makes people give up.', actions:'Auto-capture with edge detection; on-screen framing guide; instant retake; low-light + glare hints; liveness coaching. Buy-vs-build: price an off-the-shelf SDK (Onfido, Veriff, Sumsub, Persona) against this before committing — capture guidance is their core product, not ours.', pp:'10', eff:'M', wk:'14', i:'9', c:'7', e:'6', owner:'Design + Mobile', status:'Not started'},
+    {name:'Fix Android camera & crashes', hyp:'Android completes KYC at 30% vs iOS 52% and is the larger base; the upload crash and poor capture are the direct cause.', actions:'Native Android camera capture; fix the upload crash; client-side image compression; device-specific QA on the ten highest-volume handsets.', pp:'5', eff:'M', wk:'12', i:'7', c:'7', e:'5', owner:'Mobile', status:'Not started'},
+    {name:'Set expectations + soft-fail', hyp:'Hard rejections with no reason cause rage-quits; a pre-check and specific, friendly reasons recover many of them.', actions:'Pre-KYC readiness checklist; accept more document types; clear failure reasons + a path to retry or get help.', pp:'3', eff:'S', wk:'6', i:'5', c:'8', e:'8', owner:'Product + Design', status:'Not started'},
+    {name:'Recover abandoners', hyp:'Half of KYC starters drop; saving progress and nudging them back recovers a slice at almost no cost.', actions:'Save & resume deep-link; push/email nudge after drop-off; live-chat fallback at the ID step.', pp:'2', eff:'S', wk:'5', i:'4', c:'7', e:'8', owner:'Growth', status:'Not started'},
+  ],
+};
+/* ---------- per-group storage (each group isolated on this device) ---------- */
+const PREFIX='nimbus_tracker_v1::';
+const IDXKEY='nimbus_tracker_index_v1';
+function newId(){return 'g'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
+function loadIndex(){try{const r=JSON.parse(localStorage.getItem(IDXKEY));if(r&&r.groups&&r.groups.length)return r;}catch(e){}return null;}
+function saveIndex(){localStorage.setItem(IDXKEY,JSON.stringify(IDX));}
+/* Object.assign is SHALLOW: a group saved before obj.scope existed replaces the
+   whole default obj, so the new keys come back undefined and every esc()/parse
+   downstream gets undefined instead of ''. Merge obj (and econ) key-by-key, and
+   coerce the two scope fields to strings — they are typed into text inputs and
+   a stored number would fail .trim(). Groups already on facilitators' laptops
+   have to survive this change; that is the entire reason the merge is here. */
+function loadGroup(id){
+  try{
+    const r=JSON.parse(localStorage.getItem(PREFIX+id));
+    if(r){
+      const d=clone(DEFAULT);
+      const merged=Object.assign(d,r);
+      merged.obj =Object.assign(clone(DEFAULT.obj), r.obj||{});
+      merged.econ=Object.assign(clone(DEFAULT.econ),r.econ||{});
+      ['scope','scopeN'].forEach(k=>{merged.obj[k]=merged.obj[k]==null?'':String(merged.obj[k]);});
+      return merged;
+    }
+  }catch(e){}
+  return clone(DEFAULT);
+}
+let IDX=loadIndex();
+let STATE=clone(DEFAULT);
+let VIEW='plan';
+/* Facilitator mode. Same shape as hard mode on the analytics page: either query
+   string writes localStorage, so the setting is remembered on that device however
+   it was set and a facilitator can just share the link. ?facilitator=1 turns it on,
+   ?facilitator=0 turns it back off — which is what you want on a shared laptop that
+   ran the demo before the groups sat down at it. */
+const FACIL=(function(){
+  const remember=(v)=>{ try{ localStorage.setItem('nimbusFacil', v?'1':'0'); }catch(e){} return v; };
+  try{
+    const q=new URLSearchParams(location.search);
+    if(q.has('facilitator')) return remember(q.get('facilitator')!=='0');
+    return localStorage.getItem('nimbusFacil')==='1';
+  }catch(e){ return false; }
+})();
+let _t;
+function save(){localStorage.setItem(PREFIX+IDX.activeId,JSON.stringify(STATE));const f=document.getElementById('flash');if(f){f.classList.add('show');clearTimeout(_t);_t=setTimeout(()=>f.classList.remove('show'),900);}}
+function U(path,val){const p=path.split('.');let o=STATE;for(let k=0;k<p.length-1;k++){const key=/^\d+$/.test(p[k])?+p[k]:p[k];o=o[key];}const last=/^\d+$/.test(p[p.length-1])?+p[p.length-1]:p[p.length-1];o[last]=val;save();}
+/* ---------- name modal (first visit + new group) ---------- */
+function showNameModal(opts){
+  const mount=document.getElementById('modalMount');
+  mount.innerHTML=`<div class="modal"><div class="box">
+    <div class="m">🎯</div>
+    <h3>${opts.title}</h3>
+    <p>${opts.sub}</p>
+    <input id="nameInput" placeholder="${opts.placeholder||'e.g. Team Falcon, or your name'}" value="${esc(opts.value||'')}" maxlength="40">
+    <div class="row">
+      ${opts.cancel?'<button onclick="closeModal()">Cancel</button>':''}
+      <button class="pri" onclick="submitName()">${opts.cta||'Start'}</button>
+    </div>
+  </div></div>`;
+  window._modalCb=opts.onSave;
+  setTimeout(()=>{const i=document.getElementById('nameInput');if(i){i.focus();i.onkeydown=e=>{if(e.key==='Enter')submitName();};}},30);
+}
+function closeModal(){document.getElementById('modalMount').innerHTML='';}
+function askModal(msg,cta,cb){
+  const mount=document.getElementById('modalMount');
+  mount.innerHTML=`<div class="modal"><div class="box"><div class="m">⚠️</div><h3>Are you sure?</h3><p>${msg}</p><div class="row"><button onclick="closeModal()">Cancel</button><button class="pri" id="askYes">${cta}</button></div></div></div>`;
+  document.getElementById('askYes').onclick=()=>{closeModal();cb();};
+}
+function submitName(){
+  const v=(document.getElementById('nameInput').value||'').trim()||'Our team';
+  closeModal();
+  if(window._modalCb)window._modalCb(v);
+}
+function createFirstGroup(name){
+  const id=newId();
+  IDX={activeId:id, groups:[{id,name}]};
+  saveIndex();
+  STATE=clone(DEFAULT); STATE.group=name; save();
+  boot();
+}
+function newGroup(){
+  showNameModal({title:'Name your group', sub:'Each group keeps its own plan on this device. What should we call this one?', cta:'Create group', cancel:true, onSave:(name)=>{
+    const id=newId(); IDX.groups.push({id,name}); IDX.activeId=id; saveIndex();
+    STATE=clone(DEFAULT); STATE.group=name; save(); boot();
+  }});
+}
+function renameCurrent(){
+  const g=IDX.groups.find(x=>x.id===IDX.activeId);
+  showNameModal({title:'Rename group', sub:'Update the name for this group.', cta:'Save', cancel:true, value:(g&&g.name)||'', onSave:(name)=>{
+    STATE.group=name; if(g)g.name=name; saveIndex(); save(); renderGroupSel();
+  }});
+}
+function onGroupSel(v){ if(v==='__new'){renderGroupSel();newGroup();} else switchGroup(v); }
+function switchGroup(id){ if(!IDX.groups.some(g=>g.id===id))return; IDX.activeId=id; saveIndex(); STATE=loadGroup(id); render(); }
+function deleteGroup(){
+  if(!IDX)return;
+  if(IDX.groups.length<=1){ askModal('This is the only group — clear its plan instead?','Clear plan',()=>{STATE=clone(DEFAULT);STATE.group=IDX.groups[0].name;save();render();}); return; }
+  const g=IDX.groups.find(x=>x.id===IDX.activeId);
+  askModal('Delete “'+(((g&&g.name)||'this group').replace(/</g,'&lt;'))+'” and its plan on this device?','Delete group',()=>{
+    localStorage.removeItem(PREFIX+IDX.activeId);
+    IDX.groups=IDX.groups.filter(x=>x.id!==IDX.activeId);
+    IDX.activeId=IDX.groups[0].id; saveIndex(); STATE=loadGroup(IDX.activeId); render();});
+}
+function renderGroupSel(){
+  const sel=document.getElementById('groupSel');if(!sel||!IDX)return;
+  sel.innerHTML=IDX.groups.map(g=>`<option value="${g.id}" ${g.id===IDX.activeId?'selected':''}>👥 ${((g.name||'Untitled').replace(/[<>"]/g,''))}</option>`).join('')+`<option value="__new">＋ New group…</option>`;
+}
+/* ---------- view toggle ---------- */
+function setView(v){VIEW=v;document.getElementById('vtPlan').classList.toggle('on',v==='plan');document.getElementById('vtExample').classList.toggle('on',v==='example');render();}
+function loadExampleIntoPlan(){
+  if(!FACIL) return;  // the chip is hidden without it; this stops the console route too
+  askModal('Prefill THIS group’s plan with the Nimbus worked example? It overwrites what’s in your plan now.','Prefill my plan',()=>{
+  const name=STATE.group; STATE=clone(EXAMPLE); STATE.group=name; save(); setView('plan');});
+}
+/* ---------- render ---------- */
+function render(){
+  renderGroupSel();
+  const data = VIEW==='example'? EXAMPLE : STATE;
+  const ro = VIEW==='example';
+  document.getElementById('content').innerHTML =
+    (ro?`<div class="exampletag">📘 This is the model answer for the demo product, Nimbus — read-only. Switch to <b>Your plan</b> to build your own${FACIL?', or use “Prefill” above to start from this':''}.</div>`:'')
+    + objective(data,ro) + initiatives(data,ro) + coverage(data);
+  paintCoverage();
+}
+function objective(d,ro){
+  const gap=pp(d.obj.target)-pp(d.obj.base);
+  const gapTxt=isFinite(gap)&&d.obj.base!==''&&d.obj.target!==''? (gap>=0?'+':'')+round1(gap)+' pp':'—';
+  return `<div class="card ${ro?'ro':''}"><h2><span class="badge">①</span> Objective</h2>
+    <p class="goal">One KPI, one target, one deadline. The single number this whole plan exists to move.</p>
+    <div class="objgrid">
+      <div class="full"><label class="fl">Target KPI — the one metric</label><input class="tx" value="${esc(d.obj.kpi)}" oninput="U('obj.kpi',this.value)" placeholder="e.g. Sign-up → Identity-verified (KYC) completion rate"></div>
+      <div style="grid-column:span 2"><label class="fl"><span class="eduu" data-edu="WHICH users the KPI is measured on — the population under the rate. Write the segment you actually proved, not 'all users': a lift on a segment you can't reach is a lift you can't bank. This is the denominator every money figure below depends on.">Scope — measured on whom</span></label><input class="tx" value="${esc(d.obj.scope)}" oninput="U('obj.scope',this.value);refreshScope()" placeholder="e.g. All sign-ups · or: Android sign-ups"></div>
+      <div><label class="fl"><span class="eduu" data-edu="How many users a month are in that scope — the denominator. This is what turns a percentage point into money, and money scales exactly with it: the same +1pp is worth 5.9x more on 32,000 sign-ups than on 5,400.">Scope size — users / month</span></label><input class="tx" value="${esc(d.obj.scopeN)}" oninput="U('obj.scopeN',this.value);refreshScope()" placeholder="e.g. 32000"></div>
+      <div><label class="fl">Baseline (today)</label><input class="tx" value="${esc(d.obj.base)}" oninput="U('obj.base',this.value);refreshGap()" placeholder="e.g. 40 (%)"></div>
+      <div><label class="fl">Target</label><input class="tx" value="${esc(d.obj.target)}" oninput="U('obj.target',this.value);refreshGap()" placeholder="e.g. 60 (%)"></div>
+      <div><label class="fl">Current</label><input class="tx" value="${esc(d.obj.current)}" oninput="U('obj.current',this.value)" placeholder="e.g. 40 (%)"></div>
+      <div><label class="fl">Deadline</label><input class="tx" value="${esc(d.obj.deadline)}" oninput="U('obj.deadline',this.value)" placeholder="e.g. End of Q3"></div>
+      <div><label class="fl">Owner</label><input class="tx" value="${esc(d.obj.owner)}" oninput="U('obj.owner',this.value)" placeholder="e.g. Product"></div>
+      <div><label class="fl">Status</label><select class="sel" onchange="U('obj.status',this.value)">${['On track','At risk','Off track','Done'].map(o=>`<option ${d.obj.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="full"><label class="fl"><span class="eduu" data-edu="The metric you promise NOT to damage while chasing the target. It has to already exist and your plan has to be capable of moving it — if nothing you are shipping could plausibly break it, it is decoration. Growing activation by weakening fraud checks is not a win.">Guardrail — what must not get worse</span></label><input class="tx" value="${esc(d.obj.guard)}" oninput="U('obj.guard',this.value);refreshGuard()" placeholder="e.g. On-time advance repayment rate"></div>
+      <div class="full"><label class="fl"><span class="eduu" data-edu="The value at which you stop and reassess, and how often you look. This is the half everyone skips. “Without hurting repayment” commits you to nothing; “94% today, we stop below 92%, checked weekly” is a promise someone can hold you to — and it forces you to go and find today's number.">Stop-line — where you stop and reassess</span></label><input class="tx" value="${esc(d.obj.stop)}" oninput="U('obj.stop',this.value);refreshGuard()" placeholder="e.g. 94% today — stop below 92%, reviewed weekly"></div>
+    </div>
+    <div class="gapbox"><div><div class="lab eduu" data-edu="Target − baseline: the total lift your initiatives must add up to. The coverage check below tests whether the arithmetic is even possible — it cannot tell you whether the bets overlap, so clearing it is the floor, not the finish line.">Gap to close</div><div class="big" id="gapVal">${gapTxt}</div></div>
+      <div style="color:var(--slate);font-size:13.5px;flex:1;min-width:200px">Your initiatives below need to add up to at least this much expected lift. It's <b>only done</b> when Current reaches Target.</div></div>
+    <div id="scopeBar">${scopeBar(d.obj)}</div>
+    <div id="guardBar">${guardBar(d.obj)}</div>
+  </div>`;
+}
+/* Three bars sit under the gap and they answer three different questions in the
+   order a sceptic asks them: how far (gap), on whom (scope), and what you will
+   not break getting there (guardrail). */
+function scopeBar(o){
+  const sc=(o.scope||'').trim(), n=parseFloat(o.scopeN)||0;
+  const box=(bg,bd,fg,html)=>`<div class="cover" style="background:${bg};border-color:${bd};color:${fg};margin-top:10px">${html}</div>`;
+  if(!sc) return box('#f8fafc','var(--line)','var(--slate)',`👥 <b>No population yet.</b> A rate is a fraction — say who is in the bottom of it. “All users” is a perfectly good answer, but it should be a decision, not a blank.`);
+  if(!(n>0)) return box('#fff7ed','#fdba74','#7c2d12',`👥 <b>${esc(sc)}</b> — <b>but no size.</b> Without users-a-month, a percentage point cannot be turned into money, and the cost panel below has nothing to stand on.`);
+  return box('#ecfdf5','#a7f3d0','#065f46',`👥 <b>${esc(sc)}</b> · ${Math.round(n).toLocaleString('en-US')} users a month — so <b>+1pp = ${Math.round(n/100).toLocaleString('en-US')} more users</b> a month.`);
+}
+function refreshScope(){const el=document.getElementById('scopeBar');if(el)el.innerHTML=scopeBar(STATE.obj);paintCoverage();}
+/* The gap says how far you have to move. This says what you will not break on
+   the way. They belong in the same glance, so it sits directly underneath. */
+function guardBar(o){
+  const g=(o.guard||'').trim(), st=(o.stop||'').trim();
+  const box=(bg,bd,fg,html)=>`<div class="cover" style="background:${bg};border-color:${bd};color:${fg};margin-top:10px">${html}</div>`;
+  if(!g) return box('#f8fafc','var(--line)','var(--slate)',`🛡️ <b>No guardrail yet.</b> Name the metric you refuse to break to hit this target — and pick one your plan could actually damage, or it is decoration.`);
+  if(!st) return box('#fff7ed','#fdba74','#7c2d12',`🛡️ <b>${esc(g)}</b> — <b>but no stop-line.</b> A guardrail without a number is a wish. Go and find where it sits today, then say the value at which you stop and reassess.`);
+  return box('#ecfdf5','#a7f3d0','#065f46',`🛡️ <b>${esc(g)}</b> · ${esc(st)}`);
+}
+function refreshGuard(){const el=document.getElementById('guardBar');if(el)el.innerHTML=guardBar(STATE.obj);}
+function refreshGap(){const el=document.getElementById('gapVal');if(!el)return;const gap=pp(STATE.obj.target)-pp(STATE.obj.base);el.textContent=isFinite(gap)&&STATE.obj.base!==''&&STATE.obj.target!==''?((gap>=0?'+':'')+round1(gap)+' pp'):'—';paintCoverage();}
+function initiatives(d,ro){
+  const ranks=rankMap(d.inits);
+  const cards=d.inits.map((it,idx)=>{
+    const ice=iceOf(it);
+    const rk=ranks[idx];
+    return `<div class="init">
+      <div class="ihead">
+        <div class="prio ${rk===1?'p1':''}" title="ICE priority">${rk?('#'+rk):'–'}</div>
+        <input class="iname" value="${esc(it.name)}" oninput="U('inits.${idx}.name',this.value)" placeholder="Initiative ${idx+1} — the bet">
+        ${ro?'':`<button class="del" onclick="delInit(${idx})" title="Remove">✕</button>`}
+      </div>
+      <label class="fl">Hypothesis — why it will move the KPI</label>
+      <textarea oninput="U('inits.${idx}.hyp',this.value)" placeholder="Because …">${esc(it.hyp)}</textarea>
+      <label class="fl">Key actions — what eng & design build</label>
+      <textarea oninput="U('inits.${idx}.actions',this.value)" placeholder="The concrete things to ship">${esc(it.actions)}</textarea>
+      <div class="scorerow">
+        <div class="fld"><span class="k eduu" data-edu="Expected lift: how many percentage points (pp) this initiative should add to the KPI. All lifts together must cover the gap.">Exp. lift</span><input class="mini" value="${esc(it.pp)}" oninput="U('inits.${idx}.pp',this.value);paintCoverage()" placeholder="+pp"></div>
+        <div class="fld"><span class="k eduu" data-edu="T-shirt size of the build cost: Small, Medium, Large. Useful for a first sort, but it is a label, not a number — the person-weeks box next to it is what actually costs the plan.">Effort</span><select class="mini" onchange="U('inits.${idx}.eff',this.value)">${['S','M','L'].map(o=>`<option ${it.eff===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="fld"><span class="k eduu" data-edu="Person-weeks: engineers plus designers plus QA, added together. Two engineers for six weeks is 12. This is the only cost input, and it is the one number in the plan an engineering lead can actually check.">Person-wks</span><input class="mini" value="${esc(it.wk)}" oninput="U('inits.${idx}.wk',this.value);paintCoverage()" placeholder="e.g. 12"></div>
+        <div class="fld"><span class="k eduu" data-edu="Impact, 1–10: how much would this initiative move the KPI if it works?">Impact</span>${scoreSel(idx,'i',it.i)}</div>
+        <div class="fld"><span class="k eduu" data-edu="Confidence, 1–10: how sure are you, based on evidence — not optimism.">Confidence</span>${scoreSel(idx,'c',it.c)}</div>
+        <div class="fld"><span class="k eduu" data-edu="Ease, 1–10: how cheap and fast to ship (10 = trivial). The inverse of effort.">Ease</span>${scoreSel(idx,'e',it.e)}</div>
+        <div class="icecalc" data-edu="ICE = Impact × Confidence × Ease (each 1–10). Higher = do sooner. A ranking tool, not a forecast."><span class="k">ICE</span><span class="v" id="ice_${idx}">${ice||'–'}</span></div>
+        <div class="fld" style="flex:1;min-width:120px"><span class="k">Owner</span><input value="${esc(it.owner)}" oninput="U('inits.${idx}.owner',this.value)" placeholder="team"></div>
+        <div class="fld"><span class="k">Status</span><select onchange="U('inits.${idx}.status',this.value)">${['Not started','In progress','Shipped','Measuring','Done'].map(o=>`<option ${it.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card ${ro?'ro':''}"><h2><span class="badge">②③</span> Initiatives → Actions</h2>
+    <p class="goal">The bets that hit the objective, each with the concrete actions to build. Score every bet with <b>ICE</b> (Impact × Confidence × Ease, 1–10 each) — the <b>#1</b> is what you ship first.</p>
+    ${cards}
+    ${ro?'':`<div class="btnrow"><button class="act" onclick="addInit()">+ Add initiative</button><button class="act" onclick="render()">↻ Re-rank by ICE</button></div>`}
+  </div>`;
+}
+function scoreSel(idx,key,val){
+  return `<select class="mini" onchange="U('inits.${idx}.${key}',this.value);render()">${['',1,2,3,4,5,6,7,8,9,10].map(n=>`<option ${val==n&&val!==''?'selected':(val===''&&n==='')?'selected':''}>${n===''?'–':n}</option>`).join('')}</select>`;
+}
+function coverage(d){
+  const ec=d.econ||{rate:'',vpp:'',ramp:''};
+  const ro = VIEW==='example';
+  return `<div class="card"><h2><span class="badge">✓</span> Coverage &amp; ship order</h2>
+    <p class="goal">Do your bets add up to the gap — and in what order should they ship?</p>
+    <div id="coverBox"></div>
+  </div>
+  <div class="card ${ro?'ro':''}"><h2><span class="badge">$</span> Cost &amp; payback</h2>
+    <p class="goal">ICE ranks bets against each other. It never asks what they cost. Two assumptions turn your plan into something a CFO can say yes to — argue about them, then fill them in.</p>
+    <div class="objgrid">
+      <div><label class="fl eduu" data-edu="Fully loaded cost of one person for one week — salary, tax, tooling, overhead. Ask your delivery lead; do not use a salary figure.">$ per person-week</label><input class="tx" value="${esc(ec.rate)}" oninput="U('econ.rate',this.value);paintCoverage()" placeholder="e.g. 4000"></div>
+      <div><label class="fl eduu" data-edu="What one percentage point of KPI lift is worth per month once the gain has fully stacked up. Derive it from the scope above, do not guess it — 1pp is 1% of THAT population, so this number changes when the scope does. Nimbus, on all 32,000 sign-ups: 1pp = 320 more verified users a month, 52.5% of whom activate = 168 activations, each worth $5.26 over its life = $884 a month. On the 17,500 Android sign-ups the same +1pp is $483.">$ per +1pp per month</label><input class="tx" value="${esc(ec.vpp)}" oninput="U('econ.vpp',this.value);paintCoverage()" placeholder="e.g. 884"></div>
+      <div><label class="fl eduu" data-edu="How many months a monthly gain keeps stacking before the base plateaus — the average life of the user you win. For Nimbus: 18,400 activated users divided by 6,720 new per month = 2.7 months.">Ramp (months)</label><input class="tx" value="${esc(ec.ramp)}" oninput="U('econ.ramp',this.value);paintCoverage()" placeholder="e.g. 2.7"></div>
+    </div>
+    <div id="econBox" style="margin-top:14px"></div>
+  </div>`;
+}
+function paintCoverage(){
+  const box=document.getElementById('coverBox'); if(!box)return;
+  const d = VIEW==='example'? EXAMPLE : STATE;
+  const gap=pp(d.obj.target)-pp(d.obj.base);
+  const sum=d.inits.reduce((a,it)=>a+(parseFloat(it.pp)||0),0);
+  const ranked=d.inits.map((it,idx)=>({name:it.name||('Initiative '+(idx+1)),ice:iceOf(it)})).filter(r=>r.ice>0).sort((a,b)=>b.ice-a.ice);
+  let order = ranked.length? `<div style="margin-bottom:10px"><b>Ship order (highest ICE first):</b><br>${ranked.map((r,i)=>`<span class="pill">${i+1}. ${esc(r.name)} · ICE ${r.ice}</span>`).join('')}</div>`:'<div style="color:var(--muted);margin-bottom:10px">Score the initiatives’ I·C·E to see the ship order.</div>';
+  let cov='';
+  if(isFinite(gap)&&d.obj.base!==''&&d.obj.target!==''){
+    const ok=sum>=gap;
+    const tight = ok && gap>0 && Math.abs(sum-gap) < 0.5;
+    cov=`<div class="cover ${ok?'':'short'}">Your initiatives add up to <b class="${ok?'ok':'no'}">+${round1(sum)} pp</b> of expected lift against a <b>+${round1(gap)} pp</b> gap to target. ${ok?'<span class="ok">✓ The plan covers the objective.</span>':'<span class="no">Short of the target — add or strengthen an initiative.</span>'}</div>`;
+    if(ok) cov += `<div class="cover" style="background:#fff7ed;border-color:#fdba74;color:#7c2d12;margin-top:8px"><b>Necessary, but not sufficient.</b> Coverage only proves the arithmetic is possible. Expected lifts <b>don't add</b> when two bets rescue the same user, so read the total as a ceiling rather than a forecast — and ask which two of your bets fix the same person.${tight?` <br><b>And yours lands on exactly the gap.</b> That is the signature of a number worked backwards from the target. Size your strongest bet on its own, then offer the rest as headroom.`:''}</div>`;
+  } else {
+    cov=`<div class="cover" style="background:#f8fafc;border-color:var(--line);color:var(--slate)">Set a baseline and target in the Objective to check whether your initiatives cover the gap.</div>`;
+  }
+  box.innerHTML=order+cov;
+  paintEcon(d);
+}
+function paintEcon(d){
+  const box=document.getElementById('econBox'); if(!box)return;
+  const ec=econOf(d);
+  const sn=scopeNote(d,ec);
+  if(!(ec.rate>0)||!(ec.vpp>0)){
+    box.innerHTML=`<div class="cover" style="background:#f8fafc;border-color:var(--line);color:var(--slate)">Fill in the two assumptions above to cost the plan. If you cannot defend a number for either of them, that is the finding — go and get it before you pitch.</div>`+sn;
+    return;
+  }
+  const rows=d.inits.filter(it=>(parseFloat(it.wk)||0)>0||(parseFloat(it.pp)||0)>0).map(it=>{
+    const cost=costOf(it,ec), steady=valueOf(it,ec);
+    const pb=paybackMonths(cost,steady,ec.ramp);
+    const y1=year1Value(steady,ec.ramp);
+    return {name:it.name||'(unnamed)', wk:parseFloat(it.wk)||0, cost, steady, pb, y1,
+            ratio: cost>0? y1/cost : null};
+  });
+  /* sn rides on EVERY exit path, not just the last one. A plan with a $/pp typed
+     in and no person-weeks yet is exactly when the "of what, on whom?" warning
+     is most useful — dropping it here meant the check vanished at the only
+     moment the user was still deciding what the number meant. */
+  if(!rows.length){ box.innerHTML=`<div class="cover" style="background:#f8fafc;border-color:var(--line);color:var(--slate)">Add person-weeks and an expected lift to an initiative to cost it.</div>`+sn; return; }
+  const tCost=rows.reduce((a,r)=>a+r.cost,0), tSteady=rows.reduce((a,r)=>a+r.steady,0);
+  const tWk=rows.reduce((a,r)=>a+r.wk,0);
+  const tPb=paybackMonths(tCost,tSteady,ec.ramp);
+  const tY1=year1Value(tSteady,ec.ramp);
+  const best=rows.filter(r=>r.pb).sort((a,b)=>a.pb-b.pb)[0];
+  // Does costing the plan actually reorder it? Compare the two rankings over the
+  // bets that have BOTH an ICE score and a payback, and let the answer decide
+  // what the note says. Asserting "cost changes the order" when the table shows
+  // it does not is the one mistake this kit cannot afford to make.
+  const scored=d.inits.map(it=>{
+    const cost=costOf(it,ec), steady=valueOf(it,ec);
+    return {it, name:it.name||'(unnamed)', ice:iceOf(it), steady, pb:paybackMonths(cost,steady,ec.ramp)};
+  }).filter(r=>r.ice>0 && r.pb);
+  const byIce=[...scored].sort((a,b)=>b.ice-a.ice).map(r=>r.name);
+  const byPb =[...scored].sort((a,b)=>a.pb-b.pb).map(r=>r.name);
+  const moved=byIce.filter((n,idx)=>n!==byPb[idx]).length;
+  const tbl=`<table class="econtbl"><tr><th>Initiative</th><th>Wks</th><th>Cost</th><th>Value / mo<br><span style="font-weight:400;opacity:.7">at steady state</span></th><th>Payback</th><th>Year-1 return<br><span style="font-weight:400;opacity:.7">per $ spent, ramp included</span></th></tr>
+  ${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="n">${r.wk||'–'}</td><td class="n">${r.cost?money(r.cost):'–'}</td><td class="n">${r.steady?money(r.steady):'–'}</td><td class="n">${r.pb?(r.pb+' mo'):'—'}</td><td class="n">${r.ratio?('$'+r.ratio.toFixed(2)):'—'}</td></tr>`).join('')}
+  <tr class="tot"><td><b>Whole plan</b></td><td class="n">${tWk}</td><td class="n">${money(tCost)}</td><td class="n">${money(tSteady)}</td><td class="n">${tPb?('<b>'+tPb+' mo</b>'):'<b>—</b>'}</td><td class="n">${tCost>0?('<b>$'+(tY1/tCost).toFixed(2)+'</b>'):'—'}</td></tr></table>`;
+  const m1=tSteady/ec.ramp;
+  const note=`<div class="cover" style="background:#eef2ff;border-color:#c7d2fe;color:#312e81;margin-top:10px"><b>Say both numbers out loud.</b> Month one is worth ${money(m1)}, not ${money(tSteady)} — the gain stacks for about ${ec.ramp} months before it plateaus. Quoting the plateau as a launch-month figure overstates that month by <b>${ec.ramp.toFixed(1)}&times;</b>.<br><br>Across a full year the same ramp costs you far less than you would guess — <b>${money(tY1)}</b> against the naive ${money(tSteady*12)}, about <b>${Math.round(((tSteady*12)/tY1-1)*100)}%</b> — because ${(function(p){return p<=0?'the ramp never finishes inside the year':(p===12?'every month of the year is':p+' of the twelve months really are');})(Math.max(0,12-Math.ceil(ec.ramp)+1))} at plateau. That gap is the point: the ramp wrecks the launch-month claim and barely touches the annual one, so be careful which of the two you put on a slide.${scored.length<2? (best?` <br><br>Fastest payback: <b>${esc(best.name)}</b>, at ${best.pb} months. Score the ICE on at least two bets to see whether cost would reorder them.`:'')
+   : moved? ` <br><br><b>Costing the plan reordered it.</b> ICE ranks these ${scored.length} bets <b>${byIce.map(esc).join(' → ')}</b>. Payback ranks them <b>${byPb.map(esc).join(' → ')}</b> — ${moved} of them move. When the two disagree the honest answer is usually: ship the fast-payback one first to buy credibility, then spend it on the expensive one.`
+   : ` <br><br><b>Costing the plan did not reorder it</b> — ICE and payback agree on <b>${byIce.map(esc).join(' → ')}</b>. That is a genuine result and a lucky one: the bets with the best judgement scores also return their money soonest, so there is nothing to trade off. Say it out loud in the room, because the interesting version of this exercise is the one where they disagree, and you should know which you are holding.${(function(){
+     const f=flipWeeks(scored,ec);
+     if(!f) return '';
+     return ` <br><br><b>Want to see the disagreement?</b> Push <b>${esc(f.top)}</b> from <b>${f.wk0}</b> person-weeks to <b>${f.wk}</b> and its payback ${f.pb===null?'stops landing inside ten years':`slips past <b>${esc(f.rival)}</b>'s`}, and the two rankings come apart on screen. That is not a trick &mdash; it is the actual sensitivity of this plan, and how few weeks it takes is the lesson: an estimate you waved through in the ICE round is deciding the order once money is attached to it.`;
+   })()}`}</div>`;
+  const sanity = tPb===null? `<div class="cover short" style="margin-top:10px"><b>This plan does not pay back.</b> That is a real result, not a bug — either the bet is too expensive, the lift is too optimistic, or the KPI is not worth what you assumed. Any of those is worth knowing before the meeting, not after.</div>`:'';
+  box.innerHTML='<div class="econwrap">'+tbl+'</div>'+sn+note+sanity;
+}
+/* "$ per +1pp" is a rate multiplied by a population. The tracker cannot derive
+   the rate for an arbitrary product — it does not know your activation or your
+   ARPU — but it can always invert the arithmetic and hand back the one figure a
+   PM can actually check against reality: what each extra user won is worth per
+   month. A $/pp that is wrong by 6x is invisible; the same error stated as
+   "$16.50 per user per month" for a free consumer app is obvious in a second.
+   This is the same discipline as the workbook's scope ladder, in the tool people
+   take to a real account — where nobody is checking their arithmetic for them. */
+function scopeNote(d,ec){
+  const sc=(d.obj.scope||'').trim(), scN=parseFloat(d.obj.scopeN)||0;
+  const box=(bg,bd,fg,html)=>`<div class="cover" style="background:${bg};border-color:${bd};color:${fg};margin-top:10px">${html}</div>`;
+  if(!(ec.vpp>0)) return '';
+  if(!sc||!(scN>0)) return box('#fff7ed','#fdba74','#7c2d12',`👥 <b>${money(ec.vpp)} a point — of what, on whom?</b> Name the <b>scope</b> and its size in the Objective above. Every dollar in this panel is that number multiplied out, and it scales exactly with the population: the same +1pp is worth <b>5.9×</b> more on 32,000 sign-ups than on 5,400.`);
+  const perUser=ec.vpp/(scN/100);
+  return box('#eef2ff','#c7d2fe','#312e81',`👥 Measured on <b>${esc(sc)}</b> — ${Math.round(scN).toLocaleString('en-US')} a month, so <b>+1pp = ${Math.round(scN/100).toLocaleString('en-US')} more users</b>. Your ${money(ec.vpp)} a point therefore prices each of them at <b>$${perUser.toFixed(2)} a month</b> at plateau. <b>That is the number to argue about</b>, not the ${money(ec.vpp)} — check it against what a user of this product actually earns you, and if it is off, the ${money(ec.vpp)} is off by the same factor.`);
+}
+/* ---------- helpers ---------- */
+function pp(x){const v=parseFloat(x);return isNaN(v)?NaN:v;}
+function round1(x){return Math.round(x*10)/10;}
+function iceOf(it){return (parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0);}
+/* ---------- cost, value and payback ----------
+   A monthly lift does not arrive all at once. Win N extra activations a month
+   and month one is worth N x (monthly revenue per activated user); the base
+   then grows for about `ramp` months before it plateaus at ramp x that. Simple
+   payback = the first month where cumulative gain covers the build cost.
+   Reporting the plateau as if it landed in month one is the classic way these
+   cases get oversold, so the model does the ramp explicitly.               */
+function econOf(d){
+  const e=d.econ||{};
+  return {rate:parseFloat(e.rate)||0, vpp:parseFloat(e.vpp)||0, ramp:Math.max(1,parseFloat(e.ramp)||1)};
+}
+function costOf(it,ec){ return (parseFloat(it.wk)||0)*ec.rate; }
+function valueOf(it,ec){ return (parseFloat(it.pp)||0)*ec.vpp; }        // $/month at steady state
+// Cumulative value across the first 12 months, ramp included. This is what
+// "year one" means; steady x 12 is what it does NOT mean.
+function year1Value(steady,ramp){
+  if(!(steady>0)) return 0;
+  const m1=steady/ramp; let cum=0;
+  for(let m=1;m<=12;m++) cum += m1*Math.min(m,ramp);
+  return cum;
+}
+/* When ICE and payback happen to agree, the exercise loses its most useful
+   moment — the one where judgement and money point at different bets. Rather
+   than rig the worked example's numbers to force a disagreement (they are
+   load-bearing: 37 person-weeks is quoted in the client deck and the rubric),
+   work out what WOULD force one and hand the facilitator that sentence. The
+   answer is a real threshold computed off the plan on screen, so it stays true
+   when a group edits it. Returns null when nothing inside a sane range flips it.
+
+   Only the top of the ranking is probed. Two bets swapping at positions 3 and 4
+   is arithmetic; the top two swapping is the argument. */
+function flipWeeks(scored, ec){
+  if(scored.length<2) return null;
+  const byIce=[...scored].sort((a,b)=>b.ice-a.ice);
+  const top=byIce[0], rival=byIce[1];
+  if(!top||!rival||!top.it) return null;
+  const wk0=parseFloat(top.it.wk)||0;
+  if(!(wk0>0)) return null;
+  for(let wk=wk0+1; wk<=wk0+60; wk++){
+    const pb=paybackMonths(wk*ec.rate, top.steady, ec.ramp);
+    if(pb===null) return {wk, pb:null, top:top.name, rival:rival.name, wk0};
+    if(pb>rival.pb) return {wk, pb, top:top.name, rival:rival.name, wk0};
+  }
+  return null;
+}
+function paybackMonths(cost,steady,ramp){
+  if(!(cost>0)||!(steady>0)) return null;
+  const m1=steady/ramp;                       // month-one run rate
+  let cum=0;
+  for(let m=1;m<=120;m++){ cum += m1*Math.min(m,ramp); if(cum>=cost) return m; }
+  return null;                                // does not pay back inside 10 years
+}
+function money(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+function rankMap(inits){
+  const scored=inits.map((it,idx)=>({idx,ice:iceOf(it)}));
+  const sorted=scored.filter(s=>s.ice>0).sort((a,b)=>b.ice-a.ice);
+  const m={}; sorted.forEach((s,i)=>m[s.idx]=i+1); return m;
+}
+function addInit(){STATE.inits.push({name:'',hyp:'',actions:'',pp:'',eff:'M',wk:'',i:'',c:'',e:'',owner:'',status:'Not started'});save();render();}
+function delInit(idx){if(STATE.inits.length<=1){alert('Keep at least one initiative.');return;}STATE.inits.splice(idx,1);save();render();}
+/* ---------- import / export ---------- */
+function exportJSON(){const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=((STATE.group||'initiative')+'').replace(/\s+/g,'-')+'-tracker.json';a.click();}
+function importJSON(){document.getElementById('file').click();}
+function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);STATE=Object.assign(clone(DEFAULT),obj);const g=IDX.groups.find(x=>x.id===IDX.activeId);if(g&&STATE.group)g.name=STATE.group;saveIndex();save();setView('plan');}catch(err){alert('Could not read that file.');}};r.readAsText(f);}
+/* ---------- boot ---------- */
+/* The prefill chip ships with the `hidden` attribute in the markup, so the failure
+   mode of this line never running is "participants cannot one-click the answer key",
+   which is the safe direction to fail in. */
+if(FACIL){ const c=document.getElementById('prefillChip'); if(c) c.removeAttribute('hidden'); }
+function boot(){ renderGroupSel(); render(); }
+if(!IDX){
+  showNameModal({title:'Welcome to the Initiative Tracker', sub:'Before you start, what should we call your group? Each group’s plan is saved separately on this device.', placeholder:'e.g. Team Falcon, or your name', cta:'Start planning', onSave:createFirstGroup});
+} else {
+  STATE=loadGroup(IDX.activeId);
+  boot();
+}
+/* educational hover tooltips */
+(function(){
+  const tip=document.createElement('div');tip.id='wbtip';document.body.appendChild(tip);
+  let tt=null;
+  function show(el,x,y){const txt=el.getAttribute('data-edu');if(!txt)return;
+    tip.innerHTML='<span class="th2">ⓘ What this means</span>'+txt;tip.classList.add('show');
+    const W=300;let lx=x+14,ly=y+16;if(lx>innerWidth-W-12)lx=Math.max(8,x-W);if(ly>innerHeight-130)ly=Math.max(8,y-110);
+    tip.style.left=lx+'px';tip.style.top=ly+'px';}
+  document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-edu]');if(el){show(el,e.clientX,e.clientY);}else if(!tt){tip.classList.remove('show');}});
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-edu]');
+    if(el&&!e.target.closest('button,input,select,textarea,a')){show(el,e.clientX,e.clientY);clearTimeout(tt);tt=setTimeout(()=>{tt=null;tip.classList.remove('show');},2600);}});
+})();
+
+
+
+
+
+/*__GLOSSARY_AUTO_BEGIN__*/
+/* ==========================================================================
+   AUTO-GLOSSARY — every complex term, everywhere, gets a hover explanation.
+   Walks the DOM after every render and wraps each glossary term in a
+   .eduu span carrying a data-edu tooltip. Idempotent, focus-safe, skips
+   inputs / buttons / SVG / anything already explained.
+   Also adds a 📖 Glossary panel so terms are browsable, not just hoverable.
+   ========================================================================== */
+(function(){
+  const G = [
+["North Star metric","The single number that best captures the value users actually get from the product. Every other metric is a supporting act."],
+["North Star","The single number that best captures the value users actually get from the product. Every other metric is a supporting act."],
+["ICE score","ICE = Impact × Confidence × Ease, each scored 1–10 then multiplied (max 1000). It RANKS your initiatives so the best bet ships first. It is a ranking tool, never a forecast."],
+["ICE ranking","Your initiatives sorted by ICE score, highest first. The top one is what you argue to build next."],
+["ICE","ICE = Impact × Confidence × Ease, each scored 1–10 then multiplied (max 1000). It RANKS your initiatives so the best bet ships first. It is a ranking tool, never a forecast."],
+["Impact","Impact (1–10): if this initiative works, how much would it move the KPI? The I in ICE. Score the size of the prize, not how much you like the idea."],
+["Confidence","Confidence (1–10): how sure are you it will work, based on the evidence you actually gathered? The C in ICE. Enthusiasm is not confidence."],
+["Confid.","Confidence (1–10): how sure are you it will work, based on the evidence you actually gathered? The C in ICE. Enthusiasm is not confidence."],
+["Ease","Ease (1–10): how cheap and fast is it to ship, where 10 = trivial? The E in ICE. It is the inverse of effort, so a big build scores LOW."],
+["Effort","T-shirt size of the build cost — Small, Medium or Large. High-impact, low-effort bets ship first because they buy you credibility for the expensive ones."],
+["expected lift","How many percentage points this one initiative should add to the KPI if it works. Your honest estimate — and the number the coverage check adds up."],
+["Exp. lift","How many percentage points this one initiative should add to the KPI if it works. Your honest estimate — and the number the coverage check adds up."],
+["percentage points","Percentage points (pp) — the absolute distance between two percentages. Going 40% → 45% is +5pp. Saying '+5%' would mean 42%. Mixing them up is the most common way plans quietly overpromise."],
+["pp","Percentage points — the absolute distance between two percentages. 40% → 45% is +5pp, not +5% (which would be 42%). Mixing these up is how plans quietly overpromise."],
+["coverage check","Adding up every initiative's expected lift and comparing the total to the gap (target − baseline). Necessary but not sufficient: falling short means the plan cannot hit the objective, but two bets that rescue the same user do not add, so the total is a ceiling rather than a forecast."],
+["coverage","Do your expected lifts add up to the gap between baseline and target? If they don't, the plan cannot hit the objective no matter how good the ideas are. If they add up to EXACTLY the gap, you probably worked backwards from the target — and overlapping bets don't add anyway."],
+["baseline","Where the KPI sits today, before you change anything. Your starting line — and half of the gap calculation."],
+["target","Where you commit to take the KPI by a stated date. Target − baseline = the gap your initiatives have to cover."],
+["KPI","Key Performance Indicator — the one number this objective is judged on. If the KPI doesn't move, the work didn't work, however many features shipped."],
+["objective","The one outcome you are committing to, written as a KPI with a baseline, a target and a date. Not a feature list."],
+["initiatives","The bets you'll make to move the KPI — bigger than a task, smaller than a strategy. Each carries an expected lift and an ICE score."],
+["initiative","A bet you'll make to move the KPI — bigger than a task, smaller than a strategy. Each one carries an expected lift and an ICE score."],
+["funnel","An ordered sequence of steps users pass through (install → sign-up → KYC → first transaction). A funnel shows you WHERE people fall out. It never tells you why."],
+["step conversion","This stage ÷ the previous stage. It finds the weak link — always compare a step to its NEIGHBOURS, not to the top of the funnel."],
+["step conv","This stage ÷ the previous stage. It finds the weak link — always compare a step to its NEIGHBOURS, not to the top of the funnel."],
+["conversion rate","The share of people who make it from one step to the next. Always ask: conversion from what, to what, and over what time window."],
+["conversion window","How long a user is given to finish the funnel before they are counted as dropped. A 1-hour window and a 7-day window can tell opposite stories about the same product."],
+["conversion","The share of people who make it from one step to the next. Always ask: conversion from what, to what, over what window."],
+["drop-off","The users who reach a step and never complete it. The mirror image of conversion — and where the money is."],
+["bottleneck","The single step losing the most users relative to its neighbours. Fix it and every stage downstream grows for free."],
+["segmentation","Splitting one blended number by platform, channel, country or cohort. It is the fastest way to turn a vague number into a fixable problem."],
+["segment","Split a blended number by platform, channel, country or cohort. A blended 40% can hide iOS 52% and Android 30% — two completely different problems."],
+["breakdown","Splitting a report by a property such as platform or channel. Same idea as segmenting — it turns one number into a comparison."],
+["cohort","A group of users bucketed by something they share, usually the week they signed up. Cohorts let you compare like with like as the product changes."],
+["retention","The share of a cohort still coming back N days after they joined. Acquisition without retention is a leaky bucket with a bigger tap."],
+["churn","The share of users who stop coming back. The inverse of retention."],
+["activation","The moment a new user first gets real value — for Nimbus, the first transaction. Signing up is not activation; it is a promise of activation."],
+["onboarding","Everything between install and first value. The most expensive stretch of any product, and where most of the funnel is lost."],
+["KYC","Know Your Customer — the identity check a regulated fintech must complete before you can move money. Mandatory, unavoidable, and a classic place for users to give up."],
+["NPS","Net Promoter Score — 'how likely are you to recommend us?' on 0–10; promoters minus detractors. A relationship signal, not a usability one."],
+["CSAT","Customer Satisfaction — a direct 'how satisfied were you?' rating, usually asked right after one interaction."],
+["ARPU","Average Revenue Per User — revenue ÷ users. It is an average, so segment it before you trust it."],
+["MAU","Monthly Active Users — the count of distinct users who did something meaningful in a month. Check what 'active' actually means before quoting it."],
+["DAU","Daily Active Users — the count of distinct users active in a day."],
+["Flows","The report that draws the real screen-by-screen paths users take (a Sankey). A funnel says which STEP leaks; Flows says which SCREEN."],
+["Sankey","A flow diagram where the thickness of each ribbon equals the number of users taking that path. It shows where a journey splits and where it dies."],
+["root cause","The specific, fixable thing — a screen, a bug, a policy, a rule. You can brief a team against a root cause."],
+["symptom","The vague feeling: 'onboarding feels bad'. You cannot build against a symptom. Keep digging until you can name the screen."],
+["hypothesis","A testable claim with a predicted outcome: 'ID capture fails on Android because of the camera resolution check'. 'Onboarding is bad' is not a hypothesis."],
+["triangulate","Confirm a diagnosis with sources that can fail INDEPENDENTLY. The funnel, the segments and Flows are three views of one event stream — if the event is broken they agree with each other and all of them are wrong. The users' own words are the separate witness. Three charts are not three sources."],
+["triangulated","Confirmed by evidence that can fail independently — what users DO (the event stream) and what users SAY (reviews, tickets, NPS) — pointing at the same cause. Three views of one event stream is one source, not three."],
+["triangulation","Confirming a diagnosis with sources that can fail independently: what users do and what users say. Test it by asking what a single broken event would do to your evidence — if it would fool all of it at once, you have one source."],
+["qualitative","Words: reviews, support tickets, interviews, session recordings. Qual explains WHY something happens."],
+["quantitative","Numbers: funnels, cohorts, events, revenue. Quant shows WHERE it happens and HOW MUCH it costs."],
+["qual","Words — reviews, tickets, interviews. Qual explains WHY. Never ship a fix off a number with no qual behind it."],
+["quant","Numbers — funnels, cohorts, events. Quant shows WHERE the problem is and how big it is."],
+["verbatim","A user's exact words, quoted unedited. The single most persuasive piece of evidence you can put in a client room."],
+["A/B test","Randomly splitting users between two versions and measuring which performs better. It is how an opinion becomes evidence."],
+["guardrail","A metric you promise NOT to damage while chasing the target. Growing activation by weakening fraud checks is not a win. A guardrail needs two halves to mean anything: the metric, and the value at which you stop and reassess — “without hurting repayment” commits you to nothing, “94% today, stop below 92%, checked weekly” is a promise someone can hold you to."],
+["statistical significance","Whether a difference is bigger than random noise. Small samples throw up big fake differences all the time."],
+["significance","Whether a difference is bigger than random noise. With small samples, impressive-looking gaps are usually nothing."],
+["sample size","How many users a number is based on. A 90% conversion rate measured on 10 people tells you nothing at all."],
+["correlation","Two things moving together. That is a hypothesis, not a finding — and never, on its own, a reason to build."],
+["causation","One thing actually making another happen. You only prove it by changing one thing and watching the other move."],
+["median","The middle value — half of users above, half below. Safer than an average whenever a few extreme users would drag the mean around."],
+["p90","The 90th percentile: 90% of users are faster or lower than this value. The median tells you the typical experience; p90 tells you where the pain is."],
+["time to convert","How long users take to get from one funnel step to the next. A long tail almost always means people left and came back later."],
+["gate","A mandatory step the product forces between the user and value — identity checks, linking a bank, granting permissions. Every gate is a place the journey can break."],
+["friction","Anything that costs the user effort, time or nerve on the way to value. Some friction is deliberate; most is accidental."],
+["emotion curve","The user's felt experience plotted across the journey stages. A dip that lands on a mandatory gate is where products bleed."],
+["journey map","The stages a user passes through from first contact to real value, in order. Built before you look at any chart, so the data has somewhere to land."],
+["vanity metric","A number that only ever goes up and never changes a decision — total downloads, cumulative sign-ups. Comforting and useless."],
+["proxy metric","A fast-moving number you can watch weekly that stands in for a slow one you actually care about."],
+["the ask","The single decision you want from the room: budget, a green light, a date, a name. A story with no ask is just a report."],
+["discovery","The phase where you work out what is worth building, before anyone commits to building it."],
+["user profile","The complete event timeline of one individual user. Where a statistic turns back into a person — and where the 'six attempts' story comes from."],
+["first transaction","Nimbus's activation moment: the point where a new user has actually moved money and got value. Everything before it is setup."],
+["Insights","The report for counting and segmenting events over time — how many, by whom, trending which way."],
+["Cohorts","Saved groups of users defined by behaviour ('started KYC, never finished'). Build one and you can look at only those users everywhere else."]
+  ];
+
+  /* longest first so "step conversion" wins over "conversion" */
+  const sorted = G.slice().sort(function(a,b){ return b[0].length - a[0].length; });
+  const MAP = {};
+  sorted.forEach(function(g){ const k = g[0].toLowerCase(); if(!MAP[k]) MAP[k] = g[1]; });
+
+  let RE = null;
+  try{
+    const alts = sorted.map(function(g){ return g[0].replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&'); }).join('|');
+    RE = new RegExp('\\b(' + alts + ')\\b','gi');   /* no lookbehind — old iOS Safari */
+  }catch(e){ RE = null; }
+
+  /* never touch: form controls, code, buttons, nav chrome, headings, SVG */
+  const SKIP_TAG = /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|CODE|PRE|BUTTON|H1|H2|SVG|TITLE)$/;
+  /* skip already-tagged INLINE terms (.eduu) but still tag inside block-level
+     explainers like .cap / .scard — the innermost tooltip wins, which is right */
+  const SKIP_SEL = '.eduu,[data-noedu],#wbtip,.modal,.topbar,.stepper,.step,.chips,.viewtoggle,button,a,#glossPanel,#eduHint';
+
+  function eligible(node){
+    if(!node.nodeValue || !/\S/.test(node.nodeValue)) return false;
+    const p = node.parentElement;
+    if(!p) return false;
+    if(SKIP_TAG.test(p.tagName)) return false;
+    if(p.ownerSVGElement || p.tagName === 'svg') return false;
+    if(typeof p.closest !== 'function') return false;
+    if(p.closest(SKIP_SEL)) return false;
+    return true;
+  }
+
+  function autoEdu(root){
+    if(!RE || !root) return;
+    let nodes = [];
+    try{
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let n;
+      while((n = w.nextNode())){
+        if(eligible(n)){ RE.lastIndex = 0; if(RE.test(n.nodeValue)) nodes.push(n); }
+      }
+    }catch(e){ return; }
+    nodes.forEach(function(node){
+      const txt = node.nodeValue;
+      const frag = document.createDocumentFragment();
+      let last = 0, m, guard = 0;
+      RE.lastIndex = 0;
+      while((m = RE.exec(txt)) !== null && guard++ < 500){
+        if(m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+        const s = document.createElement('span');
+        s.className = 'eduu autoedu';
+        s.setAttribute('data-edu', MAP[m[0].toLowerCase()] || '');
+        s.textContent = m[0];
+        frag.appendChild(s);
+        last = m.index + m[0].length;
+        if(RE.lastIndex === m.index) RE.lastIndex++;
+      }
+      if(last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      if(node.parentNode) node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  function autoEduAll(){ autoEdu(document.body); }
+  window.autoEduAll = autoEduAll;
+  window.autoEdu = autoEdu;
+
+  /* ---------- styles: subtle affordance + glossary panel ---------- */
+  const st = document.createElement('style');
+  st.textContent =
+    '.eduu{border-bottom:1.5px dotted #a5b4fc;padding-bottom:1px;cursor:help}'
+  + '.eduu:hover{border-bottom-color:#6561FF;background:rgba(101,97,255,.07);border-radius:3px}'
+  + '#glossBtn{position:fixed;left:14px;bottom:14px;z-index:70;border:1.5px solid #d7dbe6;background:#fff;color:#121826;'
+  + 'font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:999px;cursor:pointer;'
+  + 'box-shadow:0 6px 18px rgba(15,23,42,.13)}'
+  + '#glossBtn:hover{border-color:#6561FF;color:#6561FF}'
+  + '#glossPanel{position:fixed;inset:0;z-index:90;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:16px}'
+  + '#glossPanel .gp{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.35)}'
+  + '#glossPanel .gph{padding:16px 18px 10px;border-bottom:1px solid #eef1f6;display:flex;align-items:center;gap:10px}'
+  + '#glossPanel .gph b{font-size:16px}'
+  + '#glossPanel .gpx{margin-left:auto;border:0;background:#f1f5f9;border-radius:8px;font-size:15px;line-height:1;padding:7px 10px;cursor:pointer;font-family:inherit}'
+  + '#glossPanel input.gpq{width:100%;margin:12px 18px 0;width:calc(100% - 36px);border:1.5px solid #e2e6ef;border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13.5px}'
+  + '#glossPanel .gpb{overflow-y:auto;padding:12px 18px 18px}'
+  + '#glossPanel .gr{padding:9px 0;border-bottom:1px solid #f4f6fa}'
+  + '#glossPanel .gr b{display:block;font-size:13.5px;color:#6561FF;margin-bottom:2px}'
+  + '#glossPanel .gr span{font-size:13px;line-height:1.5;color:#475069}'
+  + '#eduHint{position:fixed;left:14px;bottom:60px;z-index:70;pointer-events:none;max-width:min(290px,calc(100vw - 28px));background:#121826;color:#fff;'
+  + 'font-size:12px;line-height:1.45;font-weight:500;padding:9px 12px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.28)}'
+  + '#eduHint b{color:#a5b4fc}'
+  + '#eduHint u{text-decoration:none;border-bottom:1.5px dotted #a5b4fc}'
+  + '@media print{.eduu{border-bottom:none;background:none}#glossBtn,#eduHint,#glossPanel{display:none!important}}';
+  document.head.appendChild(st);
+
+  /* ---------- browsable glossary ---------- */
+  function openGloss(){
+    if(document.getElementById('glossPanel')) return;
+    const rows = G.slice().sort(function(a,b){ return a[0].toLowerCase() < b[0].toLowerCase() ? -1 : 1; });
+    const wrap = document.createElement('div');
+    wrap.id = 'glossPanel';
+    wrap.setAttribute('data-noedu','1');
+    const body = rows.map(function(r){
+      return '<div class="gr" data-t="' + r[0].toLowerCase() + ' ' + r[1].toLowerCase().replace(/"/g,'') + '"><b>'
+        + r[0].replace(/</g,'&lt;') + '</b><span>' + r[1].replace(/</g,'&lt;') + '</span></div>';
+    }).join('');
+    wrap.innerHTML = '<div class="gp"><div class="gph"><b>📖 Glossary</b>'
+      + '<span style="font-size:12px;color:#6b7280">' + rows.length + ' terms · every one is also hoverable in the page</span>'
+      + '<button class="gpx" aria-label="Close">✕</button></div>'
+      + '<input class="gpq" placeholder="Filter… e.g. ICE, coverage, cohort">'
+      + '<div class="gpb">' + body + '</div></div>';
+    document.body.appendChild(wrap);
+    const close = function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); };
+    wrap.querySelector('.gpx').onclick = close;
+    wrap.onclick = function(e){ if(e.target === wrap) close(); };
+    const q = wrap.querySelector('.gpq');
+    q.oninput = function(){
+      const v = q.value.trim().toLowerCase();
+      wrap.querySelectorAll('.gr').forEach(function(el){
+        el.style.display = (!v || el.getAttribute('data-t').indexOf(v) >= 0) ? '' : 'none';
+      });
+    };
+    setTimeout(function(){ try{ q.focus(); }catch(e){} }, 30);
+  }
+  window.openGlossary = openGloss;
+
+  function chrome(){
+    if(document.getElementById('glossBtn')) return;
+    const b = document.createElement('button');
+    b.id = 'glossBtn';
+    b.type = 'button';
+    b.setAttribute('data-noedu','1');
+    b.textContent = '📖 Glossary';
+    b.onclick = openGloss;
+    document.body.appendChild(b);
+
+    let seen = false;
+    try{ seen = localStorage.getItem('eduHintSeen') === '1'; }catch(e){}
+    if(seen) return;
+    const h = document.createElement('div');
+    h.id = 'eduHint';
+    h.setAttribute('data-noedu','1');
+    h.innerHTML = '<b>New here?</b> Every <u>underlined word</u> explains itself — hover it (or tap on mobile). Full list in <b>📖 Glossary</b>.';
+    document.body.appendChild(h);
+    const kill = function(){
+      if(h.parentNode) h.parentNode.removeChild(h);
+      try{ localStorage.setItem('eduHintSeen','1'); }catch(e){}
+      document.removeEventListener('click', kill, true);
+      document.removeEventListener('keydown', kill, true);
+    };
+    document.addEventListener('click', kill, true);
+    document.addEventListener('keydown', kill, true);
+    setTimeout(kill, 8000);
+  }
+
+  /* ---------- keep everything tagged as the app re-renders ---------- */
+  let queued = false, obs = null;
+  function pass(){
+    queued = false;
+    if(obs) obs.disconnect();
+    try{ autoEduAll(); }catch(e){}
+    if(obs) obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+  }
+  function schedule(){
+    if(queued) return;
+    queued = true;
+    (window.requestAnimationFrame || function(f){ setTimeout(f,16); })(pass);
+  }
+  try{
+    obs = new MutationObserver(schedule);
+  }catch(e){ obs = null; }
+
+  function boot(){
+    try{ chrome(); }catch(e){}
+    try{ autoEduAll(); }catch(e){}
+    if(obs) obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+/*__GLOSSARY_AUTO_END__*/
+</script>
+<script>
+/* Hard mode has to survive a click. The analytics page is where the setting
+   lives, but the workbook and the tracker both link back to it — and a pair
+   working from a ?mode=hard tab used to click through and land in SOFT mode,
+   where the bottleneck banner names the Exercise-3 answer outright.
+
+   Two sources, in order: this page's own query string (so a facilitator can
+   share every link in hard mode), then the flag the analytics page writes to
+   localStorage whichever way the mode was set. Same origin on a served site,
+   so the second one is what actually does the work on the day. */
+(function(){
+  function hardNow(){
+    try{
+      var q = new URLSearchParams(location.search);
+      if(q.has('mode')) return q.get('mode') === 'hard';
+      if(q.has('hard'))  return q.get('hard') !== '0';
+      return localStorage.getItem('nimbusHard') === '1';
+    }catch(e){ return false; }
+  }
+  function paint(){
+    if(!hardNow()) return;
+    var links = document.querySelectorAll('a[data-keepmode][href]');
+    for(var i=0;i<links.length;i++){
+      var a = links[i], h = a.getAttribute('href');
+      if(/[?&]mode=/.test(h)) continue;
+      a.setAttribute('href', h + (h.indexOf('?') < 0 ? '?' : '&') + 'mode=hard');
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint);
+  else paint();
+})();
+</script>
+</body>
+</html>

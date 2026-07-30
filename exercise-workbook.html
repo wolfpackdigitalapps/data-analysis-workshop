@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Analysis Workshop — Exercise Workbook</title>
+<style>
+:root{--indigo:#4F46E5;--sky:#0EA5E9;--ink:#0f172a;--slate:#475569;--muted:#94a3b8;--line:#e2e8f0;
+  --bg:#eef2f7;--card:#fff;--good:#0ca30c;--bad:#d03b3b;--warn:#eda100;--grad:linear-gradient(135deg,#4F46E5,#0EA5E9);}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+.topbar{position:sticky;top:0;z-index:30;background:#0f172a;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.topbar .t{font-weight:800;font-size:16px;display:flex;align-items:center;gap:9px}
+.topbar .t .m{width:24px;height:24px;border-radius:7px;background:var(--grad);display:grid;place-items:center;font-size:13px}
+.topbar select.grp{background:#1e293b;border:1px solid #334155;color:#fff;border-radius:8px;padding:8px 11px;font-size:14px;font-family:inherit;font-weight:600}
+.topbar .sp{flex:1}
+.topbar button{background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.topbar button:hover{background:#334155}
+/* stepper */
+.stepper{position:sticky;top:58px;z-index:25;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;display:flex;gap:6px;align-items:center;overflow-x:auto}
+.step{display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:700;color:var(--slate);cursor:pointer;white-space:nowrap;border:1.5px solid transparent}
+.step:hover{background:#f1f5f9}
+.step.on{background:var(--grad);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.step.done{color:var(--good)}
+.step .n{width:20px;height:20px;border-radius:50%;background:#e2e8f0;color:var(--slate);display:grid;place-items:center;font-size:11px;flex:0 0 auto}
+.step.on .n{background:rgba(255,255,255,.25);color:#fff}
+.step.done .n{background:#dcf5dc;color:var(--good)}
+.step .arrow{color:var(--muted);font-size:12px}
+.wrap{max-width:980px;margin:0 auto;padding:24px 20px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.card h1{margin:0 0 6px;font-size:25px;letter-spacing:-.02em;display:flex;align-items:center;gap:11px}
+.card h2{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+.badge{background:var(--grad);color:#fff;font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;flex:0 0 auto}
+.goal{color:var(--slate);font-size:14px;margin:0 0 6px}
+/* theory recap */
+.theory{background:#f5f4ff;border:1px solid #ddd9ff;border-radius:14px;padding:0;margin-bottom:18px;overflow:hidden}
+.theory .th{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;font-weight:800;font-size:14px;color:var(--indigo)}
+.theory .th .chev{margin-left:auto;transition:.2s}
+.theory.open .th .chev{transform:rotate(180deg)}
+.theory .tb{display:none;padding:0 18px 16px;font-size:14px;color:var(--slate);line-height:1.55}
+.theory.open .tb{display:block}
+.theory .tb b{color:var(--ink)}
+.theory .tb .trow{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.theory .tb .trow .ic{flex:0 0 auto}
+label.fl{display:block;font-weight:700;font-size:13px;color:var(--slate);margin:14px 0 5px}
+textarea,input.tx,select.sel{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+textarea:focus,input.tx:focus,select.sel:focus,input:focus,select:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+.btnrow{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+button.act{background:#eef2ff;color:var(--indigo);border:1px solid #dbe4ff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+button.act:hover{background:#e0e7ff}
+button.del{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 5px}
+button.del:hover{color:var(--bad)}
+button.mv{background:#f8fafc;border:1px solid var(--line);border-radius:7px;color:var(--slate);cursor:pointer;font-size:12px;padding:3px 7px;font-family:inherit}
+button.mv:hover{border-color:var(--indigo);color:var(--indigo)}
+.ok{color:var(--good)} .no{color:var(--bad)}
+.hint{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:11px 14px;font-size:13px;margin-top:14px;line-height:1.45}
+.result{background:#eff6ff;border:1px solid #dbe4ff;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:12px;display:none}
+.result.show{display:block}
+.phz{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px;align-items:center}
+.phz span{display:inline-flex;align-items:center;gap:5px;background:#f6f7fb;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--slate)}
+.phz span b{font-weight:800;color:var(--indigo)}
+.phz span.a{border:none;background:none;padding:0 1px;color:var(--muted)}
+.protobar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin-top:14px}
+.protobar .pb{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--slate)}
+.protobar .pbn{display:block;font-weight:800;font-size:12px;letter-spacing:.02em;border-radius:999px;padding:3px 9px;margin-bottom:6px;width:max-content}
+.protobar .pba{align-self:center;color:var(--muted);font-weight:800;font-size:16px}
+.tmg{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.tmg th{text-align:left;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:0 6px 4px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.tmg td{padding:4px 6px 4px 0;border-bottom:1px solid var(--line);color:var(--slate)}
+.tmg tr td:first-child{font-weight:600;color:var(--ink)}
+.tmg th:not(:first-child),.tmg td:not(:first-child){text-align:center;width:52px}
+@media(max-width:680px){
+  /* Headers may wrap and columns narrow, so the table fits the phone instead of
+     being cropped by the grid cap above. Every cell below the header is a "3m". */
+  .tmg{font-size:11.5px}
+  .tmg th{white-space:normal;font-size:9.5px;line-height:1.15}
+  .tmg th:not(:first-child),.tmg td:not(:first-child){width:38px}
+  .tmg td,.tmg th{padding-right:3px}
+}
+.tmg tr td:last-child{font-weight:700;color:var(--indigo)}
+.tmg tr:last-child td{border-bottom:none}
+@media(max-width:760px){.protobar{grid-template-columns:1fr;gap:6px}.protobar .pba{display:none}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+/* minmax(0,1fr), not 1fr: a 1fr track never goes below the min-content of what
+   is inside it, so one unshrinkable child (a table with nowrap headers, a long
+   URL) silently widens the whole page. The 0 floor lets the track shrink and
+   pushes the problem down to the child, where it is visible and fixable. */
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.chips a{background:#eef2ff;color:var(--indigo);font-weight:700;font-size:13px;padding:8px 13px;border-radius:9px;text-decoration:none;border:1px solid #dbe4ff}
+/* ---------- Journey visual ---------- */
+.jmap{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:6px 2px 10px}
+.jstage{flex:0 0 205px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;position:relative}
+.jstage.gate{border-color:#f6c9da;background:#fff8fb}
+.jstage .jhead{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.jstage .jhead input{flex:1;border:0;border-bottom:2px solid var(--line);border-radius:0;padding:4px 2px;font-weight:800;font-size:14px;font-family:inherit;background:transparent;min-width:0}
+.jstage .jhead input:focus{outline:none;border-color:var(--indigo);box-shadow:none}
+.jstage .jf{margin-bottom:7px}
+.jstage .jf .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;margin-bottom:2px}
+.jstage .jf input{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px;font-family:inherit}
+.jconn{flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:var(--indigo);font-size:17px}
+.emorow{display:flex;gap:3px;margin-top:2px}
+.emorow button{flex:1;border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 0;font-size:13px;cursor:pointer;opacity:.45}
+.emorow button.on{opacity:1;border-color:var(--indigo);background:#eef2ff}
+.gatebtn{width:100%;margin-top:6px;border:1px dashed var(--line);background:#fff;border-radius:8px;padding:6px;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+.jstage.gate .gatebtn{border-color:#f294bb;color:#c2255c;background:#fff0f6;border-style:solid}
+.jtools{display:flex;gap:4px;position:absolute;top:8px;right:8px}
+.emochart{margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.emochart .cap{font-size:12px;font-weight:700;color:var(--slate);margin-bottom:4px}
+/* ---------- Funnel visual ---------- */
+.fviz{display:flex;flex-direction:column;align-items:center;gap:2px;margin:10px 0 4px}
+.fvrow{width:100%;display:grid;grid-template-columns:186px 1fr 170px;gap:12px;align-items:center}
+/* The name cell holds three things: the stage's own name, editable here as
+   well as in Exercise 1 because it is the same row of the same list; the tools
+   to add, move and delete that row; and the dashboard event the pair says
+   measures it. Right-aligned so the stage names still run down the page as one
+   clean edge into the bars. */
+.fvname{font-size:13px;font-weight:700;color:var(--slate);text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}
+.fvname .stname{width:100%;line-height:1.25;word-break:break-word}
+.fvname .stname.gate{color:#c2255c}
+/* A stage nobody has named yet should look unfinished on the funnel too — the
+   funnel is the journey, so a blank there is a blank here. */
+.fvname .stname.unnamed{color:var(--muted);font-weight:600;font-style:italic}
+/* The name is an input, not a label, and it has to still read as one clean
+   right-hand edge: no filled box, no left-aligned text, border only on hover
+   and focus. It writes to the journey, so it must not look like a second,
+   separate field that might disagree with Exercise 1. */
+input.stname{font-family:inherit;font-size:13px;font-weight:700;color:inherit;text-align:right;background:transparent;border:1px solid transparent;border-radius:7px;padding:3px 6px}
+input.stname:hover{border-color:var(--line);background:#fff}
+input.stname:focus{outline:0;border-color:var(--indigo);background:#fff}
+input.stname::placeholder{color:var(--muted);font-weight:600;font-style:italic}
+.fvtools{display:flex;gap:3px;justify-content:flex-end;flex-wrap:wrap}
+.fvtools .mv{padding:1px 6px;font-size:11px;line-height:1.5}
+.fvtools .del{font-size:13px;padding:1px 4px}
+.fvtools .gt{filter:grayscale(1);opacity:.55}
+.fvtools .gt.on{filter:none;opacity:1;border-color:#f8bbd0;background:#fff0f5}
+.evsel{width:100%;border:1px dashed var(--line);border-radius:7px;padding:4px 6px;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--muted);background:#fff;text-align:right;text-align-last:right;cursor:pointer;min-width:0}
+.evsel.on{border-style:solid;border-color:#c7d2fe;background:#eef2ff;color:var(--indigo)}
+.fvbarwrap{height:40px;display:flex;justify-content:center;align-items:center;gap:6px;min-width:0}
+/* When the bar is too narrow to hold its own number, the number moves out here
+   rather than rendering white-on-white past the end of the bar. Which bars
+   those are is measured at paint time, not guessed from a breakpoint. */
+.fvbar.tiny{font-size:0}
+.fvnum{font-size:11.5px;font-weight:800;color:var(--slate);white-space:nowrap}
+.fvnum:empty{display:none}
+.fvbar{height:100%;min-width:36px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;transition:width .4s cubic-bezier(.2,.7,.2,1);box-shadow:0 3px 10px rgba(79,70,229,.25)}
+.fvbar.bad{background:linear-gradient(135deg,#e0356b,#d03b3b);box-shadow:0 3px 10px rgba(208,59,59,.3)}
+.fvin{display:flex;gap:6px;align-items:center}
+.fvin input{width:76px;border:1px solid var(--line);border-radius:7px;padding:7px;font-size:13px;font-family:inherit;text-align:right}
+.fvconv{width:100%;display:grid;grid-template-columns:186px 1fr 170px;gap:12px;align-items:center;height:26px}
+.fvconv .cc{display:flex;justify-content:center;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-weight:700}
+.fvconv .cc input{width:56px;border:1px solid var(--line);border-radius:6px;padding:4px;font-size:12px;text-align:center;font-family:inherit}
+.fvconv .cc .comp{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-weight:800;font-size:12px}
+@media(max-width:620px){
+  .wrap{padding:18px 12px 90px}
+  .fvrow,.fvconv{grid-template-columns:104px 1fr 112px;gap:6px}
+  .fvname{font-size:11px;line-height:1.25;gap:3px}
+  .evsel{font-size:9px;padding:3px 4px}
+  .fvin{gap:4px;font-size:10.5px}
+  .fvin input{width:54px;padding:6px 5px;font-size:12px}
+  .fvbar{min-width:26px;font-size:11px}
+  .fvconv{height:auto}
+  .fvconv .cc{gap:4px;font-size:10.5px}
+  .fvconv .cc input{width:42px;padding:3px}
+  .fvconv .cc .comp{padding:2px 5px;font-size:10.5px}
+}
+/* ---------- Bottleneck visual ---------- */
+.jov{background:#f8faff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:14px}
+.jov .cap{font-weight:800;font-size:13px;color:var(--indigo);margin-bottom:10px}
+.jflow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;row-gap:11px}
+.jnode{background:#fff;border:1.5px solid #c7cbf6;color:var(--ink);font-weight:700;font-size:13px;padding:7px 13px;border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,.06);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jnode.gate{border-color:#f3a8c2;background:#fff0f6;color:#b3134f}
+.jnode.empty{color:var(--muted);border-style:dashed;font-weight:600;background:#fbfcff}
+.jarr{color:var(--indigo);font-weight:800;font-size:14px}
+.jdot{color:var(--indigo);font-size:15px;font-weight:800}
+.jend{border:2px double #7bc98a;color:#067306;border-radius:999px;padding:6px 13px;font-weight:800;font-size:12.5px;background:#f2fbf3;white-space:nowrap}
+.jloop{color:var(--muted);font-weight:700;font-size:12px;border:1px dashed var(--line);border-radius:999px;padding:5px 11px}
+.pinrow{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.pinopt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:11px;padding:11px 14px;cursor:pointer;background:#fff}
+.pinopt:hover{border-color:var(--indigo)}
+.pinopt.on{border-color:var(--bad);background:#fff5f5;box-shadow:0 0 0 3px rgba(208,59,59,.08)}
+.pinopt .flag{margin-left:auto;font-size:16px;opacity:0}
+.pinopt.on .flag{opacity:1}
+.pinopt .steps{font-weight:700;font-size:14px}
+.pinopt .pct{font-size:12.5px;color:var(--muted);font-weight:700}
+.tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px}
+@media(max-width:760px){.tri{grid-template-columns:1fr}}
+.tricard{border:1.5px solid var(--line);border-radius:13px;padding:13px;background:#fff}
+.tricard .tt{font-weight:800;font-size:13px;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.tricard textarea{min-height:66px;font-size:13px}
+.tricard.filled{border-color:#bbd8bb;background:#f7fdf7}
+.diagbox{margin-top:14px;background:linear-gradient(135deg,#f5f4ff,#fdf2f8);border:1.5px solid #ddd9ff;border-radius:14px;padding:16px 18px}
+.diag{font-size:15px;line-height:2.2}
+.diag input{display:inline-block;width:auto;min-width:200px;border:0;border-bottom:2px solid var(--indigo);border-radius:0;padding:4px 6px;font-size:15px;background:#fff;font-family:inherit}
+.diag input:focus{outline:none;box-shadow:none}
+/* ---------- Plan (ex4) ---------- */
+.initw{border:1.5px solid var(--line);border-radius:13px;padding:14px;margin-bottom:12px;background:#fff}
+.initw .ihead{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.prio{flex:0 0 auto;min-width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;background:#eef2ff;color:var(--indigo);border:1px solid #dbe4ff;padding:0 4px}
+.prio.p1{background:var(--grad);color:#fff;border:0}
+.initw .iname{flex:1;font-weight:700;font-size:14px;border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;font-family:inherit;min-width:0}
+.scorerow{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap;margin-top:9px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.scorerow .fld{display:flex;flex-direction:column;gap:3px}
+.scorerow .fld .k{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:800}
+.scorerow input,.scorerow select{border:1px solid var(--line);border-radius:7px;padding:6px;font-size:13px;font-family:inherit;background:#fff}
+.scorerow .mini{width:54px;text-align:center}
+.icec{background:var(--grad);color:#fff;border-radius:8px;padding:5px 11px;font-weight:800;text-align:center;min-width:52px}
+.icec .k{font-size:9px;opacity:.85;display:block;font-weight:700}
+.covmeter{margin-top:6px;background:#f1f5f9;border-radius:999px;height:22px;position:relative;overflow:hidden}
+.covfill{height:100%;background:var(--grad);border-radius:999px;transition:width .4s;display:flex;align-items:center;justify-content:flex-end;padding-right:9px;color:#fff;font-size:11.5px;font-weight:800;min-width:34px}
+.covfill.full{background:linear-gradient(135deg,#0ca30c,#34d399)}
+.covlab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700;margin-top:5px}
+/* ---------- Story (ex5) ---------- */
+.story{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:6px 2px 6px}
+@media(max-width:860px){.story{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.story{grid-template-columns:1fr}}
+.scard{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:13px;display:flex;flex-direction:column}
+.scard .sh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--indigo);margin-bottom:2px}
+.scard .st2{font-weight:800;font-size:14px;margin-bottom:8px}
+.scard textarea{flex:1;min-height:100px;font-size:13px}
+.scard.filled{border-color:#bbd8bb}
+.sconn{flex:0 0 24px;display:flex;align-items:center;justify-content:center;color:var(--indigo);font-size:16px}
+/* nav footer */
+.pagenav{display:flex;gap:10px;margin-top:8px;align-items:center}
+.pagenav .sp{flex:1}
+button.nav2{background:#fff;border:1.5px solid var(--line);color:var(--slate);border-radius:11px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+button.nav2:hover{border-color:var(--indigo);color:var(--indigo)}
+button.nav2.pri{background:var(--grad);color:#fff;border:0;box-shadow:0 6px 16px rgba(79,70,229,.3)}
+button.nav2.pri:hover{filter:brightness(1.06)}
+.saveflash{position:fixed;bottom:16px;right:16px;background:#0f172a;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:40}
+.saveflash.show{opacity:.95}
+/* educational tooltips */
+#wbtip{position:fixed;pointer-events:none;background:#111827;color:#fff;padding:10px 13px;border-radius:9px;font-size:12.5px;font-weight:500;line-height:1.45;opacity:0;transition:opacity .12s;z-index:80;max-width:300px;border-top:3px solid var(--indigo);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#wbtip.show{opacity:1}
+#wbtip .th2{display:block;color:#a5b4fc;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+[data-edu]{cursor:help}
+.eduu{border-bottom:1.5px dotted #a5b4fc;padding-bottom:1px;cursor:help}
+/* custom explaining dropdown */
+.cdrop{position:relative;margin-bottom:7px}
+.cdbtn{width:100%;display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:10px;padding:10px 11px;font-size:13.5px;font-weight:700;font-family:inherit;background:#fff;color:var(--ink);cursor:pointer;text-align:left}
+.cdbtn:hover{border-color:var(--indigo)}
+.cdmenu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(15,23,42,.18);z-index:50;overflow:hidden;max-height:320px;overflow-y:auto}
+.cdmenu.open{display:block}
+.cdopt{padding:10px 13px;cursor:pointer;border-bottom:1px solid #f1f5f9}
+.cdopt:last-child{border-bottom:0}
+.cdopt:hover{background:#eef2ff}
+.cdopt.on{background:#f5f4ff}
+.cdopt .ct{font-weight:800;font-size:13px;color:var(--ink)}
+.cdopt .cd{font-size:11.5px;color:var(--slate);line-height:1.4;margin-top:2px}
+
+/* summary */
+.sumsec{border-left:4px solid var(--indigo);padding:2px 0 2px 16px;margin-bottom:16px}
+.sumsec h3{margin:0 0 4px;font-size:15px}
+.sumsec .sv{font-size:14px;color:var(--slate);line-height:1.55}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal .box{background:#fff;border-radius:18px;padding:28px 26px;max-width:430px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal .box .m{width:44px;height:44px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-size:22px;margin-bottom:14px}
+.modal h3{margin:0 0 6px;font-size:21px}
+.modal p{margin:0 0 16px;color:var(--slate);font-size:14px}
+.modal input{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:13px;font-size:16px;font-family:inherit;margin-bottom:14px}
+.modal .row{display:flex;gap:10px;justify-content:flex-end}
+.modal button{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:#fff;color:var(--slate)}
+.modal button.pri{background:var(--grad);color:#fff;border:0}
+@media print{
+  .topbar,.stepper,.btnrow,.chips,.hint,.pagenav,button,.saveflash,.modal{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  #pageMount>.pg{display:block!important;page-break-after:always}
+  textarea,input,select{border:1px solid #bbb!important}
+  .result{display:block!important}
+  .theory .tb{display:block}
+  .jmap,.story{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="t"><span class="m">📓</span> Workshop Workbook</div>
+  <select class="grp" id="groupSel" onchange="onGroupSel(this.value)" title="Switch group — each group's answers are kept separately on this device"></select>
+  <div class="sp"></div>
+  <button onclick="window.print()">🖨️ Print / PDF</button>
+  <button onclick="exportJSON()">⬇️ Export</button>
+  <button onclick="importJSON()">⬆️ Import</button>
+  <button onclick="renameCurrent()">✏️ Rename</button>
+  <button onclick="deleteGroup()">🗑️ Delete</button>
+</div>
+<div class="stepper" id="stepper"></div>
+<input type="file" id="file" accept="application/json" style="display:none" onchange="loadFile(event)">
+<div class="wrap"><div id="pageMount"></div></div>
+<div class="saveflash" id="flash">Saved ✓</div>
+<div id="modalMount"></div>
+
+<script>
+/* =============== state =============== */
+const KEY='nimbus_workbook_v1';
+const clone=o=>JSON.parse(JSON.stringify(o));
+// Safe in attribute AND text position, because it is used in both. & first,
+// or it re-escapes the entities the later replacements introduce.
+const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const DEFAULT={
+  group:'', page:0, done:[false,false,false,false,false],
+  // ONE card. The workbook used to open Exercise 1 with six stages already
+  // named — Discover, Sign up, Verify identity, Link bank, First transaction,
+  // Come back — on the theory that stage names are scaffolding and ten minutes
+  // should not go on typing. The theory was wrong, and it was wrong in the way
+  // that costs the most: a pair handed six stages does not BUILD a journey, it
+  // annotates one. It never has to decide that identity verification is a stage
+  // at all, never has to notice the product forces it, and never has to argue
+  // about whether the journey ends at the first payment or at the second. Those
+  // three decisions ARE Exercise 1. Seeding them and then grading them is
+  // marking your own homework in the participant's handwriting.
+  //
+  // So: one blank card, and every stage after it is theirs. The cost is about
+  // sixty seconds of typing. The gain is that Exercise 2's funnel — which is now
+  // derived from this list, not authored beside it — inherits whatever they
+  // decided here, including the parts they got wrong. A journey that stops at
+  // "First transaction" now produces a five-row funnel that visibly cannot
+  // answer the retention question, and the sheet says so. That is a lesson. Six
+  // pre-typed rows were a spoiler.
+  ex1:{rows:[{id:'s0',stage:'',goal:'',action:'',touch:'',emo:'',gate:false}],hypo:''},
+  // ex2.rows is NOT authored here. It is a mirror of ex1.rows — one funnel step
+  // per journey stage, in journey order, kept in lockstep by syncFunnel(). What
+  // lives on the funnel row and nowhere else is the measurement: which dashboard
+  // EVENT counts this stage (`ev`), how many users reached it (`users`), and the
+  // step conversion the pair works out by hand (`conv`). Those three travel with
+  // the stage by id, so renaming or reordering a stage in Exercise 1 does not
+  // cost anybody the numbers they already read off the dashboard.
+  ex2:{rows:[{id:'s0',stage:'',ev:'',users:'',conv:''}],worst:'',overall:''},
+  // Ex3 is a ladder, not a table. Scanning one dimension at a time produces
+  // CANDIDATES; a candidate only becomes a cause once you build the compound
+  // segment and the gap survives holding the other thing constant. `built` is
+  // where that happens, and `killed` is where the hypothesis that dissolved
+  // gets named — the step every room skips and the only one that proves they
+  // controlled for anything at all.
+  // Three blank rows, and deliberately no dimension pre-picked. Seeding
+  // Platform / Channel / Country used to hand the room the scan — and Country
+  // is the confounder the exercise exists to make them find, so naming it in
+  // the third row was naming the answer.
+  ex3:{pin:-1,seg:[{dim:'',best:'',worst:'',gap:''},{dim:'',best:'',worst:'',gap:''},{dim:'',best:'',worst:'',gap:''}],
+       built:[{name:'',n:'',rate:'',gap:'',cn:'',verdict:''},{name:'',n:'',rate:'',gap:'',cn:'',verdict:''}],killed:'',
+       ev:[{src:'Funnel',note:''},{src:'Built segment',note:''},{src:'Reviews',note:''}],who:'',why:'',cause:'',symptom:''},
+  // econ lives on the plan, not the initiative: one rate and one value-per-point
+  // for the whole plan, so two bets are costed on the same basis.
+  // guard/stop: the kit teaches a guardrail on a whole deck slide, grades it in
+  // the rubric twice, and until now gave nobody anywhere to write one down.
+  // scope/scopeN: the KPI is measured on a POPULATION, and after Ex3 that
+  // population is usually a segment the group built rather than everybody.
+  // A point on the 17,500 Android sign-ups is not a point on all 32,000, and a
+  // point on the 5,400 driving-licence-on-Android sign-ups is not either. A plan
+  // that forgets which denominator it stands on overstates itself by the ratio.
+  ex4:{kpi:'',scope:'',scopeN:'',base:'',target:'',date:'',guard:'',stop:'',econ:{rate:'4000',vpp:'',ramp:'2.7'},inits:[
+    {name:'',hyp:'',actions:'',pp:'',eff:'M',i:'',c:'',e:'',wk:''},
+    {name:'',hyp:'',actions:'',pp:'',eff:'M',i:'',c:'',e:'',wk:''},
+    {name:'',hyp:'',actions:'',pp:'',eff:'S',i:'',c:'',e:'',wk:''},
+  ]},
+  ex5:{situation:'',evidence:'',diagnosis:'',plan:'',impact:'',ask:''},
+};
+const PREFIX='nimbus_workbook_v1::';
+const IDXKEY='nimbus_workbook_index_v1';
+function newId(){return 'g'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);}
+/* A journey stage needs an identity that survives being renamed and being
+   dragged past its neighbours, because the funnel's numbers hang off it. */
+let _sidN=0;
+function sid(){return 's'+Date.now().toString(36)+(_sidN++).toString(36);}
+/* The six events the dashboard actually reports, in the order it reports them.
+   This list is the join between the journey a pair invents and the instrument
+   that measures it, and it is the reason Exercise 2 can now tell a group that
+   their journey has no stage for a step the product forces on 32,000 people a
+   month. Keep it identical to the funnel in nimbus-analytics.html — if the
+   dashboard gains a stage and this does not, the coverage check goes quiet
+   about exactly the stage nobody thought about. */
+const EVENTS=['App installs','Sign-up complete','Identity verified (KYC)','Bank linked','First transaction','Repeat (30d)'];
+/* ---- the funnel is the journey, measured ------------------------------- */
+/* Exercise 2 used to be a second, independent list of steps that merely started
+   out looking like Exercise 1's. Nothing held them together: a pair could build
+   a four-stage journey, turn the page, and be handed a six-step funnel with
+   different words in it — underneath a heading insisting "the funnel is the
+   journey, measured". It was the one claim in the workbook that the workbook
+   itself contradicted, and it taught the habit the whole day is against, which
+   is reading numbers off a dashboard into a shape you did not choose.
+   ex2.rows is now derived: one funnel step per journey stage, in journey order,
+   carrying the stage's name and its gate flag. What lives only on the funnel row
+   is the measurement — which event counts it, how many users reached it, and the
+   step conversion — and that is keyed to the stage's stable id. So a rename
+   keeps the numbers, a reorder moves them, and only a delete throws them away,
+   which is right, because the step is gone.                                  */
+function syncFunnel(st){
+  if(!st||!st.ex1||!Array.isArray(st.ex1.rows))return st;
+  if(!st.ex2||typeof st.ex2!=='object')st.ex2={rows:[],worst:'',overall:''};
+  const old=Array.isArray(st.ex2.rows)?st.ex2.rows:[];
+  const by={};old.forEach(r=>{if(r&&typeof r.id==='string'&&r.id)by[r.id]=r;});
+  // Which transition Exercise 3 pinned, by identity rather than by position: a
+  // reorder in Exercise 1 has to move the pin with its step, not leave it
+  // pointing at whichever step slid into that slot. A legacy row has no identity
+  // to follow, so there the index IS the identity — same reasoning as the
+  // positional number-pairing below, and dropping the pin instead would silently
+  // discard the one answer Exercise 3 had already been given.
+  const S=v=>v==null?'':String(v);
+  const pIdx=(st.ex3&&typeof st.ex3.pin==='number')?st.ex3.pin:-1;
+  const pRow=pIdx>0?old[pIdx]:null;
+  const pinnedId=(pRow&&typeof pRow.id==='string'&&pRow.id)?pRow.id:null;
+  const pinnedLegacy=!!pRow&&pinnedId==null;
+  const rows=st.ex1.rows.map((r,i)=>{
+    // Positional fallback for workbooks saved before stages had ids: back then
+    // the two lists were both six long and in the same order, so pairing by
+    // index is exactly right — and it is the only chance to keep a mid-workshop
+    // group's typed numbers across the upgrade.
+    const legacy=old[i]&&typeof old[i].id!=='string';
+    const prev=by[r.id]||(legacy?old[i]:null);
+    // In a legacy workbook the funnel row's own NAME was the dashboard event —
+    // that list was hard-coded to the six the dashboard reports. So a group
+    // upgrading mid-workshop keeps the mapping they already had, rather than
+    // being told their finished funnel now measures nothing. Only legacy rows
+    // get this: for a live row the name comes from the journey, and inferring an
+    // event from it would quietly answer the question Exercise 2 is asking.
+    const ev = prev&&EVENTS.indexOf(S(prev.ev))>=0 ? S(prev.ev)
+             : (prev&&legacy&&EVENTS.indexOf(S(prev.stage))>=0 ? S(prev.stage) : '');
+    return {id:r.id,stage:S(r.stage),gate:!!r.gate,ev:ev,
+            users:prev?S(prev.users):'',conv:prev?S(prev.conv):''};
+  });
+  st.ex2.rows=rows;
+  if(st.ex3&&typeof st.ex3==='object'){
+    const ni = pinnedId!=null ? rows.findIndex(r=>r.id===pinnedId)
+             : (pinnedLegacy&&pIdx<rows.length ? pIdx : -1);
+    st.ex3.pin=ni>0?ni:-1;
+  }
+  return st;
+}
+function loadIndex(){try{const r=JSON.parse(localStorage.getItem(IDXKEY));if(r&&r.groups&&r.groups.length)return r;}catch(e){}return null;}
+function saveIndex(){localStorage.setItem(IDXKEY,JSON.stringify(IDX));}
+function normalize(st){
+  const m=Object.assign(clone(DEFAULT),st);
+  if(!Array.isArray(m.done)||m.done.length<5)m.done=[false,false,false,false,false];
+  if(typeof m.page!=='number')m.page=0;
+  if(!m.ex3.ev||m.ex3.ev.length<3)m.ex3.ev=clone(DEFAULT.ex3.ev);
+  if(typeof m.ex3.pin!=='number')m.ex3.pin=-1;
+  // Object.assign is shallow: a workbook saved before the segment ladder
+  // existed comes back with a 3-row seg table and no `built` / `killed` at all.
+  if(!Array.isArray(m.ex3.seg)||!m.ex3.seg.length)m.ex3.seg=clone(DEFAULT.ex3.seg);
+  m.ex3.seg.forEach(s=>{if(typeof s.dim!=='string')s.dim='';
+    ['best','worst','gap'].forEach(k=>{if(typeof s[k]!=='string')s[k]=s[k]==null?'':String(s[k]);});});
+  if(!Array.isArray(m.ex3.built)||!m.ex3.built.length)m.ex3.built=clone(DEFAULT.ex3.built);
+  m.ex3.built.forEach(b=>{['name','n','rate','gap','cn','verdict'].forEach(k=>{if(typeof b[k]!=='string')b[k]=b[k]==null?'':String(b[k]);});});
+  if(typeof m.ex3.killed!=='string')m.ex3.killed='';
+  ['scope','scopeN'].forEach(k=>{if(typeof m.ex4[k]!=='string')m.ex4[k]=m.ex4[k]==null?'':String(m.ex4[k]);});
+  // Object.assign is shallow, so a workbook saved before costing existed comes
+  // back with an ex4 that has no econ block. Restore it rather than crash.
+  if(!m.ex4.econ)m.ex4.econ=clone(DEFAULT.ex4.econ);
+  m.ex4.inits.forEach(it=>{if(typeof it.wk!=='string'&&typeof it.wk!=='number')it.wk='';});
+  /* Journey stages carry the identity the funnel hangs off, so a workbook that
+     arrives without ids — every workbook saved before this build, and every
+     hand-edited JSON import — has to be given them before anything is derived.
+     Duplicate ids are re-minted too: two stages sharing an id would share one
+     set of funnel numbers, and the second would silently overwrite the first. */
+  if(!Array.isArray(m.ex1.rows)||!m.ex1.rows.length)m.ex1.rows=clone(DEFAULT.ex1.rows);
+  const seenId={};
+  m.ex1.rows.forEach(r=>{
+    ['stage','goal','action','touch','emo'].forEach(k=>{if(typeof r[k]!=='string')r[k]=r[k]==null?'':String(r[k]);});
+    r.gate=!!r.gate;
+    if(typeof r.id!=='string'||!r.id||seenId[r.id])r.id=sid();
+    seenId[r.id]=1;
+  });
+  ['worst','overall'].forEach(k=>{if(typeof m.ex2[k]!=='string')m.ex2[k]=m.ex2[k]==null?'':String(m.ex2[k]);});
+  return syncFunnel(m);
+}
+function loadGroup(id){try{const r=JSON.parse(localStorage.getItem(PREFIX+id));if(r)return normalize(r);}catch(e){}return clone(DEFAULT);}
+let IDX=loadIndex();
+let STATE=clone(DEFAULT);
+let _t;
+/* Every mutation path in the workbook ends here — U(), addRow, delRow,
+   moveRow, insStage, the modals — so this is the one place the derivation can be
+   hung where nobody can forget to call it. Sync BEFORE the write, or the funnel
+   that gets persisted is one edit behind the journey it is supposed to mirror.
+   This is also what makes the funnel page safely editable: its controls write to
+   ex1.rows and then land here, so "the funnel is derived" and "you can edit the
+   funnel" are the same statement rather than two features racing each other. */
+function save(){syncFunnel(STATE);localStorage.setItem(PREFIX+IDX.activeId,JSON.stringify(STATE));const f=document.getElementById('flash');if(f){f.classList.add('show');clearTimeout(_t);_t=setTimeout(()=>f.classList.remove('show'),900);}}
+function U(path,val){const p=path.split('.');let o=STATE;for(let k=0;k<p.length-1;k++){o=o[/^\d+$/.test(p[k])?+p[k]:p[k]];}o[/^\d+$/.test(p[p.length-1])?+p[p.length-1]:p[p.length-1]]=val;save();}
+/* =============== name modal =============== */
+function showNameModal(opts){
+  document.getElementById('modalMount').innerHTML=`<div class="modal"><div class="box">
+    <div class="m">📓</div><h3>${opts.title}</h3><p>${opts.sub}</p>
+    <input id="nameInput" placeholder="${opts.placeholder||'e.g. Team Falcon'}" value="${esc(opts.value||'')}" maxlength="40">
+    <div class="row">${opts.cancel?'<button onclick="closeModal()">Cancel</button>':''}<button class="pri" onclick="submitName()">${opts.cta||'Start'}</button></div>
+  </div></div>`;
+  window._modalCb=opts.onSave;
+  setTimeout(()=>{const i=document.getElementById('nameInput');if(i){i.focus();i.onkeydown=e=>{if(e.key==='Enter')submitName();};}},30);
+}
+function closeModal(){document.getElementById('modalMount').innerHTML='';}
+function submitName(){const v=(document.getElementById('nameInput').value||'').trim()||'Our team';closeModal();if(window._modalCb)window._modalCb(v);}
+/* =============== groups =============== */
+function groupLabel(g){return (g&&g.name&&g.name.trim())||'Untitled group';}
+function renderGroupSel(){
+  const sel=document.getElementById('groupSel');if(!sel||!IDX)return;
+  sel.innerHTML=IDX.groups.map(g=>`<option value="${g.id}" ${g.id===IDX.activeId?'selected':''}>👥 ${groupLabel(g).replace(/[<>"]/g,'')}</option>`).join('')+`<option value="__new">＋ New group…</option>`;
+}
+function onGroupSel(v){ if(v==='__new'){renderGroupSel();newGroup();} else switchGroup(v); }
+function switchGroup(id){ if(!IDX.groups.some(g=>g.id===id))return; IDX.activeId=id; saveIndex(); STATE=loadGroup(id); render(); }
+function newGroup(){
+  showNameModal({title:'Name your group',sub:'Each group keeps its own workbook on this device. What should we call this one?',cta:'Create group',cancel:true,onSave:(name)=>{
+    const id=newId(); IDX.groups.push({id,name}); IDX.activeId=id; saveIndex();
+    STATE=clone(DEFAULT); STATE.group=name; save(); render();
+  }});
+}
+function renameCurrent(){
+  const g=IDX.groups.find(x=>x.id===IDX.activeId);
+  showNameModal({title:'Rename group',sub:'Update the name for this group.',cta:'Save',cancel:true,value:(g&&g.name)||'',onSave:(name)=>{
+    STATE.group=name; if(g)g.name=name; saveIndex(); save(); renderGroupSel();
+  }});
+}
+function deleteGroup(){
+  if(IDX.groups.length<=1){ askModal('This is the only group — clear its answers instead?','Clear answers',()=>{const n=STATE.group;STATE=clone(DEFAULT);STATE.group=n;save();render();}); return; }
+  askModal('Delete “'+groupLabel(IDX.groups.find(g=>g.id===IDX.activeId)).replace(/</g,'&lt;')+'” and its answers on this device?','Delete group',()=>{doDeleteGroup()}); return;
+}
+function doDeleteGroup(){
+  localStorage.removeItem(PREFIX+IDX.activeId);
+  IDX.groups=IDX.groups.filter(g=>g.id!==IDX.activeId);
+  IDX.activeId=IDX.groups[0].id; saveIndex(); STATE=loadGroup(IDX.activeId); render();
+}
+/* =============== pages & nav =============== */
+const PAGES=[
+  {id:'intro', label:'Start', short:'🏁'},
+  {id:'ex1', label:'1 · Journey', short:'1'},
+  {id:'ex2', label:'2 · Funnel', short:'2'},
+  {id:'ex3', label:'3 · Bottleneck', short:'3'},
+  {id:'ex4', label:'4 · Plan', short:'4'},
+  {id:'ex5', label:'5 · Story', short:'5'},
+  {id:'summary', label:'Summary', short:'✓'},
+];
+function goPage(n,skipConfirm){
+  n=Math.max(0,Math.min(PAGES.length-1,n));
+  if(n===STATE.page){return;}
+  // navigation is never blocking — exercises can be revisited any time
+  STATE.page=n; save(); render(); window.scrollTo(0,0);
+}
+function askModal(msg,cta,cb){
+  const mount=document.getElementById('modalMount');
+  mount.innerHTML=`<div class="modal"><div class="box"><div class="m">⚠️</div><h3>Are you sure?</h3><p>${msg}</p><div class="row"><button onclick="document.getElementById('modalMount').innerHTML=''">Cancel</button><button class="pri" id="askYes">${cta}</button></div></div></div>`;
+  document.getElementById('askYes').onclick=()=>{mount.innerHTML='';cb();};
+}
+/* THE ONE GATE IN THE WORKBOOK.
+   Exercise 3 is the only exercise that withholds its own tick, and it withholds
+   it on the one field a pair can skip while still producing something that looks
+   like a full page of work: the candidate they stopped believing. Everything
+   else on the page can be filled in by a pair who went looking for confirmation
+   and found some. The graveyard cannot — it is the only evidence that anything
+   was tested rather than confirmed, which is why the deck and the rubric both
+   promise this gate exists.
+
+   It withholds the TICK, not the room. A pair who genuinely killed nothing can
+   say that in the field, or walk on unticked; the take-home then prints "none —
+   so nothing was controlled for" for the whole workshop to see. A gate you
+   cannot walk past stops being a teaching device at minute 40 and becomes a
+   bug — the facilitator loses the room and the lesson with it. */
+function markDoneAndNext(exIdx){
+  if(!Array.isArray(STATE.done))STATE.done=[false,false,false,false,false];
+  if(exIdx===2&&!String(STATE.ex3.killed||'').trim()){ gateModal(); return; }
+  STATE.done[exIdx]=true; goPage(STATE.page+1,true);
+}
+function gateModal(){
+  const mount=document.getElementById('modalMount');
+  mount.innerHTML=`<div class="modal"><div class="box"><div class="m">🪦</div>
+    <h3>One field left: the hypothesis you killed</h3>
+    <p>A diagnosis with no casualties is usually a first guess that survived because nothing was ever held constant. Name the candidate that dissolved — it is the only part of this page that proves you tested something instead of confirming it.</p>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px">Killed nothing? Say so in the field — <i>"nothing died: every candidate survived being held constant"</i> is a legitimate answer and a rare one. Move on without it and Exercise 3 stays unticked, and your summary will say why.</p>
+    <div class="row"><button onclick="skipGate()">Continue unticked</button><button class="pri" onclick="focusKilled()">Write it now</button></div></div></div>`;
+}
+function focusKilled(){
+  document.getElementById('modalMount').innerHTML='';
+  const t=document.querySelector('[data-gate="killed"]');
+  if(t){ t.scrollIntoView({block:'center',behavior:'smooth'}); t.focus(); }
+}
+function skipGate(){
+  document.getElementById('modalMount').innerHTML='';
+  goPage(STATE.page+1,true);
+}
+function renderStepper(){
+  document.getElementById('stepper').innerHTML=PAGES.map((p,idx)=>{
+    const done=idx>=1&&idx<=5&&STATE.done[idx-1];
+    return `<div class="step ${STATE.page===idx?'on':''} ${done?'done':''}" onclick="goPage(${idx})"><span class="n">${done?'✓':p.short}</span>${p.label}</div>`+(idx<PAGES.length-1?'<span class="arrow">›</span>':'');
+  }).join('');
+}
+/* =============== theory recap helper =============== */
+function theory(title,rows){
+  return `<div class="theory"><div class="th" onclick="this.parentElement.classList.toggle('open')">📘 Theory recap — ${title} <span class="chev">▾</span></div>
+  <div class="tb">${rows.map(r=>`<div class="trow"><span class="ic">${r[0]}</span><div>${r[1]}</div></div>`).join('')}</div></div>`;
+}
+/* =============== page renderers =============== */
+function pIntro(){
+  return `<div class="card">
+    <h1><span class="badge">🏁</span> Welcome, ${esc(STATE.group||'team')}!</h1>
+    <p class="goal" style="font-size:15px">You'll work through <b>five exercises</b> on the demo product <b>Nimbus</b> — one page each. Finish a page, mark it done, move to the next. Everything saves automatically in this browser.</p>
+    <div class="protobar">
+      <div class="pb"><span class="pbn" style="background:#eef2ff;color:#6561FF">1 · 🧍 Solo</span><b>Think on your own first.</b> Write your answer here in silence — no discussion yet.</div>
+      <div class="pba">→</div>
+      <div class="pb"><span class="pbn" style="background:#fff0f5;color:#FA357B">2 · 👥 Pair</span><b>Compare with your partner.</b> Where you differ is the interesting bit. Agree one answer.</div>
+      <div class="pba">→</div>
+      <div class="pb"><span class="pbn" style="background:#eafaf1;color:#15A34A">3 · 🗣 Debrief</span><b>Share with the room.</b> The person who <i>wasn't</i> typing does the talking.</div>
+    </div>
+    <div class="hint" style="background:#fff0f5;border-color:#ffd9e6;color:#9d174d;margin-top:10px">🤝 <b>Same partner for all five exercises.</b> One laptop per pair is fine — but <b>each of you fills in your own workbook</b>, so use the name switcher in the top bar to keep them separate.</div>
+    <div class="grid2" style="margin-top:14px">
+      <div>
+        <h2>The five moves</h2>
+        <div class="sumsec"><h3>1 · Map the journey</h3><div class="sv">The path to value, its gates, and your drop-off hypothesis.</div></div>
+        <div class="sumsec"><h3>2 · Build the funnel</h3><div class="sv">Measure the journey; find the step that breaks the pattern.</div></div>
+        <div class="sumsec"><h3>3 · Diagnose the bottleneck</h3><div class="sv">Segment it, read the feedback, triangulate the cause.</div></div>
+        <div class="sumsec"><h3>4 · Build the plan</h3><div class="sv">Objective → Initiatives → Actions, ranked with ICE.</div></div>
+        <div class="sumsec"><h3>5 · Tell the story</h3><div class="sv">Situation → Evidence → Diagnosis → Plan → Impact → Ask.</div></div>
+      </div>
+      <div>
+        <h2>Your tools</h2>
+        <div class="chips" style="flex-direction:column;align-items:stretch">
+          <a href="nimbus-app.html" target="_blank">📱 The Nimbus app — experience the product</a>
+          <a href="nimbus-analytics.html" target="_blank" data-keepmode>📊 Nimbus Analytics — the data</a>
+          <a href="initiative-tracker.html" target="_blank">🎯 Initiative tracker — for Exercise 4</a>
+        </div>
+        <h2 style="margin-top:18px">How long each phase runs</h2>
+        <table class="tmg">
+          <tr><th>Exercise</th><th>🧍 Solo</th><th>👥 Pair</th><th>🗣 Debrief</th><th>Hands-on</th></tr>
+          <tr><td>1 · Journey</td><td>3m</td><td>7m</td><td>5m</td><td>15m</td></tr>
+          <tr><td>2 · Funnel</td><td>4m</td><td>6m</td><td>5m</td><td>15m</td></tr>
+          <tr><td>3 · Bottleneck</td><td>7m</td><td>11m</td><td>7m</td><td>25m</td></tr>
+          <tr><td>4 · Plan</td><td>8m</td><td>14m</td><td>8m</td><td>30m</td></tr>
+          <tr><td>5 · Story</td><td>10m</td><td>12m</td><td>8m</td><td>30m</td></tr>
+        </table>
+        <div class="hint" style="margin-top:14px">💡 <b>Sharing a computer?</b> Use the name switcher in the top bar — each person's workbook is stored separately.</div>
+      </div>
+    </div>
+    <div class="pagenav"><span class="sp"></span><button class="nav2 pri" onclick="goPage(1,true)">Start Exercise 1 →</button></div>
+  </div>`;
+}
+/* ---------- Ex1 · Journey ---------- */
+const EMOS=['😣','🙁','😐','🙂','😄'];
+function addStage(){addRow('ex1.rows',{id:sid(),stage:'',goal:'',action:'',touch:'',emo:'',gate:false});}
+/* Deleting a stage now deletes a column of Exercise 2 as well, and the pair
+   doing the deleting is looking at Exercise 1, where those numbers are not on
+   screen. Say what goes before it goes; stay silent when there is nothing to
+   lose, because a confirmation nobody needs is a confirmation nobody reads. */
+function delStage(idx){
+  const r=STATE.ex1.rows[idx];if(!r)return;
+  if(STATE.ex1.rows.length<=1)return;
+  const m=STATE.ex2.rows.find(x=>x.id===r.id)||{};
+  const bits=[];
+  if(String(m.users||'').trim())bits.push('a user count');
+  if(String(m.conv||'').trim())bits.push('a step conversion');
+  if(String(m.ev||'').trim())bits.push('an event mapping');
+  if(!bits.length)return delRow('ex1.rows',idx);
+  askModal('“'+escT(r.stage||('Stage '+(idx+1)))+'” has '+bits.join(' and ')+' against it in Exercise 2. Deleting the stage deletes the measurement with it.','Delete the stage',()=>delRow('ex1.rows',idx));
+}
+/* Exercise 2 edits the same list Exercise 1 does, and these are the writes that
+   make that true. A pair building the funnel almost always finds a step they
+   did not draw — the dashboard reports an event and no row claims it — and they
+   find it *here*, with the numbers in front of them. Sending them back to
+   Exercise 1 to type it again is the one piece of friction guaranteed to make
+   the tool feel like homework: it is the same list, so it is the same edit.
+   Everything below writes to ex1.rows, which stays the single source of truth;
+   syncFunnel then rebuilds this page from it. Consequence worth stating: a
+   stage added on the funnel page arrives in the journey with its goal, action,
+   touchpoint and emotion blank, and Exercise 1 will show it as an unfinished
+   card. That is correct — it IS unfinished — and the summary page counts it. */
+function insStage(idx){
+  const rows=STATE.ex1.rows;
+  if(!Array.isArray(rows))return;
+  const at=Math.max(0,Math.min(rows.length,idx+1));
+  rows.splice(at,0,{id:sid(),stage:'',goal:'',action:'',touch:'',emo:'',gate:false});
+  save();render();
+}
+const escT=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function jmapViz(){
+  const rows=STATE.ex1.rows;
+  if(!rows.length)return '<div style="color:var(--muted);font-size:13px">Add stages to draw the journey.</div>';
+  const nodes=rows.map((r,i)=>{
+    const name=escT((r.stage||'').trim());
+    return `<span class="jnode ${r.gate?'gate':''} ${name?'':'empty'}">${r.gate?'🔒 ':''}${name||('Stage '+(i+1))}</span>`;
+  }).join('<span class="jarr">→</span>');
+  const last=(rows[rows.length-1].stage||'');
+  const loops=/repeat|return|retain|re-use|again/i.test(last);
+  return `<div class="jflow"><span class="jdot" title="First touch">●</span><span class="jarr">→</span>${nodes}<span class="jarr">→</span><span class="jend" title="The North Star — value reached">◎ value</span>${loops?'<span class="jloop">↻ loops back</span>':''}</div>`;
+}
+function paintJmap(){const el=document.getElementById('jmapviz');if(el)el.innerHTML=jmapViz();}
+function diagOv(){
+  const E=STATE.ex3;
+  // Every one of these reads the same event stream. A segment the group built
+  // themselves feels like new evidence precisely because it took effort — it
+  // is still the same stream, and that is the whole point of listing it here.
+  const BEHAV={'Funnel':1,'Segment split':1,'Built segment':1,'Flows':1};
+  const FALLBACK=['📊 The funnel says','🧩 The segments say','💬 The users say'];
+  const srcs=E.ev.map((e,i)=>{const o=SRC_OPTS.find(x=>x[0]===e.src);return [o?o[1]+' '+o[0]:FALLBACK[i], e.note];});
+  const nodes=srcs.map(s=>`<span class="jnode ${s[1]?'':'empty'}" style="${s[1]?'border-color:#7bc98a;background:#f2fbf3;color:#067306':''}">${s[1]?'✓ ':''}${s[0]}</span>`).join('<span class="jarr">↘</span>');
+  const who=escT((E.who||'').trim()), why=escT((E.why||'').trim());
+  const filled=srcs.filter(s=>s[1]).length;
+  const voices=E.ev.filter(e=>e.note&&!BEHAV[e.src]).length;
+  const diag = who? `<span class="jnode gate" style="max-width:none;white-space:normal">🎯 Users drop at <b>${who}</b>${why?` because <b>${why}</b>`:''}</span>` : `<span class="jnode empty">🎯 your diagnosis appears here</span>`;
+  const verdict = filled<3 ? '· a diagnosis needs all three'
+    : voices ? '· triangulated ✓'
+    : '· <span style="color:#b45309">all three read the same event stream — one of them has to be what users <b>say</b></span>';
+  return `<div class="jflow" style="align-items:center">${nodes}<span class="jarr">⇒</span>${diag}</div>
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:8px">${filled}/3 evidence sources filled ${verdict}</div>`;
+}
+const SRC_OPTS=[
+ ['Funnel','📊','Step-to-step conversion in the Funnels report — shows WHERE users drop.'],
+ ['Segment split','🧩','The weak step broken down one dimension at a time — shows WHO it hits hardest. Candidates, not causes.'],
+ ['Built segment','🧱','A compound segment you built in the comparison bar — two conditions ANDed on one chip, held against a second chip that differs in exactly one of them. Shows whether the gap survives holding the other dimension constant. Harder to earn, still the same event stream.'],
+ ['Flows','🌊','The screen-by-screen path (Sankey) — shows the exact SCREEN that leaks.'],
+ ['Reviews','⭐','App-store verbatims — users explain the WHY in their own words.'],
+ ['Support tickets','🎫','What users contact support about, by category — volume means real pain.'],
+ ['NPS','📈','Would users recommend you (−100 to +100) — a mood thermometer; context, not cause.'],
+ ['App experience','📱','The friction YOU felt walking the flow yourself — firsthand qualitative evidence.'],
+];
+function srcDrop(idx){
+  const cur=STATE.ex3.ev[idx].src;
+  const o=SRC_OPTS.find(s=>s[0]===cur);
+  return `<div class="cdrop" id="cdrop_${idx}">
+    <button type="button" class="cdbtn" onclick="toggleDrop(${idx})">${o?o[1]+' '+o[0]:'Choose a source…'}<span style="margin-left:auto;color:var(--muted)">▾</span></button>
+    <div class="cdmenu" id="cdmenu_${idx}">${SRC_OPTS.map(s=>`<div class="cdopt ${cur===s[0]?'on':''}" onclick="pickSrc(${idx},'${s[0]}')"><div class="ct">${s[1]} ${s[0]}${cur===s[0]?' ✓':''}</div><div class="cd">${s[2]}</div></div>`).join('')}</div>
+  </div>`;
+}
+function toggleDrop(idx){document.querySelectorAll('.cdmenu.open').forEach(m=>{if(m.id!=='cdmenu_'+idx)m.classList.remove('open')});const m=document.getElementById('cdmenu_'+idx);if(m)m.classList.toggle('open');}
+function pickSrc(idx,val){U('ex3.ev.'+idx+'.src',val);const wrap=document.getElementById('cdrop_'+idx);if(wrap)wrap.outerHTML=srcDrop(idx);paintDiagOv();}
+document.addEventListener('click',e=>{if(!e.target.closest('.cdrop'))document.querySelectorAll('.cdmenu.open').forEach(m=>m.classList.remove('open'));});
+function paintDiagOv(){const el=document.getElementById('diagov');if(el)el.innerHTML=diagOv();}
+function planOv(){
+  const E=STATE.ex4;
+  const obj=(E.kpi||'').trim();
+  const objChip= obj? `<span class="jnode gate">🎯 ${escT(obj)}${E.base&&E.target?` · ${escT(E.base)}%→${escT(E.target)}%`:''}</span>` : `<span class="jnode empty">🎯 Objective</span>`;
+  /* The scope rides as its own chip rather than inside the objective, because a
+     missing denominator should look missing. A rate with no stated population
+     reads as if it applied to everybody, which is exactly the overstatement. */
+  const sc=(E.scope||'').trim(), scN=numOf(E.scopeN);
+  const scopeChip= sc
+    ? `<span class="jnode" style="border-color:#7bc98a;background:#f2fbf3;color:#067306">👥 ${escT(sc)}${scN>0?` · ${Math.round(scN).toLocaleString('en-US')}/mo`:''}</span>`
+    : `<span class="jnode empty">👥 scope — on whom?</span>`;
+  const ranked=E.inits.map((it,idx)=>({n:(it.name||'').trim(),ice:(parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0),idx})).filter(r=>r.n||r.ice>0);
+  ranked.sort((a,b)=>b.ice-a.ice);
+  const chips= ranked.length? ranked.map((r,i)=>`<span class="jnode ${i===0&&r.ice>0?'gate':''}">${r.ice>0?('#'+(i+1)+' '):''}${escT(r.n)||('Initiative '+(r.idx+1))}</span>`).join('<span class="jarr">→</span>') : `<span class="jnode empty">initiatives appear here</span>`;
+  const g=(E.guard||'').trim(), st=(E.stop||'').trim();
+  const guardLine = g
+    ? `<div style="font-size:12px;font-weight:700;margin-top:8px;color:${st?'#067306':'var(--muted)'}">🛡️ ${escT(g)}${st?` · ${escT(st)}`:' · no stop-line yet — say the number you would stop at'}</div>`
+    : `<div style="font-size:12px;font-weight:700;margin-top:8px;color:var(--muted)">🛡️ no guardrail yet — name the thing you refuse to break to hit this</div>`;
+  return `<div class="jflow">${objChip}<span class="jarr">on</span>${scopeChip}<span class="jarr">⇒</span>${chips}</div>${guardLine}`;
+}
+function paintPlanOv(){const el=document.getElementById('planov');if(el)el.innerHTML=planOv();}
+function storyOv(){
+  const KS=[['situation','① Situation'],['evidence','② Evidence'],['diagnosis','③ Diagnosis'],['plan','④ Plan'],['impact','⑤ Impact'],['ask','⑥ Ask']];
+  const chips=KS.map(([k,l])=>{const f=(STATE.ex5[k]||'').trim();
+    return `<span class="jnode ${f?'':'empty'}" style="${f?'border-color:#7bc98a;background:#f2fbf3;color:#067306':''}">${f?'✓ ':''}${l}</span>`;}).join('<span class="jarr">→</span>');
+  const n=KS.filter(([k])=>(STATE.ex5[k]||'').trim()).length;
+  return `<div class="jflow">${chips}</div><div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:8px">${n}/6 beats written ${n===6?'· the arc is complete ✓':''}</div>`;
+}
+function paintStoryOv(){const el=document.getElementById('storyov');if(el)el.innerHTML=storyOv();}
+function pEx1(){
+  const rows=STATE.ex1.rows;
+  const stages=rows.map((r,idx)=>`
+    <div class="jstage ${r.gate?'gate':''}">
+      <div class="jtools">
+        ${idx>0?`<button class="mv" onclick="moveRow('ex1.rows',${idx},-1)" title="Move left">◀</button>`:''}
+        ${idx<rows.length-1?`<button class="mv" onclick="moveRow('ex1.rows',${idx},1)" title="Move right">▶</button>`:''}
+        ${rows.length>1?`<button class="del" onclick="delStage(${idx})">✕</button>`:''}
+      </div>
+      <div class="jhead"><input value="${esc(r.stage)}" oninput="U('ex1.rows.${idx}.stage',this.value);paintJmap()" placeholder="Stage name"></div>
+      <div class="jf"><div class="k">User goal</div><input value="${esc(r.goal)}" oninput="U('ex1.rows.${idx}.goal',this.value)" placeholder="what they want"></div>
+      <div class="jf"><div class="k">Action</div><input value="${esc(r.action)}" oninput="U('ex1.rows.${idx}.action',this.value)" placeholder="what they do"></div>
+      <div class="jf"><div class="k">Touchpoint</div><input value="${esc(r.touch)}" oninput="U('ex1.rows.${idx}.touch',this.value)" placeholder="screen / channel"></div>
+      <div class="jf"><div class="k"><span class="eduu" data-edu="How the user FEELS at this stage, rated 1–5. Low emotion = friction — and the lowest-emotion gate is your prime drop-off suspect.">Emotion</span></div>
+        <div class="emorow">${EMOS.map((e,ei)=>`<button class="${String(r.emo)===String(ei+1)?'on':''}" onclick="U('ex1.rows.${idx}.emo','${ei+1}');render()">${e}</button>`).join('')}</div></div>
+      <button class="gatebtn" data-edu="A gate is a mandatory step the product forces between the user and value (KYC, linking a bank). Every gate is a risk — gates are where journeys break." onclick="U('ex1.rows.${idx}.gate',${r.gate?'false':'true'});render()">${r.gate?'🔒 GATE — mandatory step':'🔓 Mark as a gate'}</button>
+    </div>${idx<rows.length-1?'<div class="jconn">→</div>':''}`).join('');
+  return `<div class="card">
+    <h1><span class="badge">1</span> Map the user journey</h1>
+    <div class="phz"><span>🧍 Solo <b>3m</b></span><span class="a">→</span><span>👥 Pair <b>7m</b></span><span class="a">→</span><span>🗣 Debrief <b>5m</b></span></div>
+    <p class="goal">Build the journey left → right, starting from the card below. Run it from <b>first contact</b> all the way to <b>coming back</b> — not just to the first payment. Name each stage, fill its details, rate the <b>emotion</b>, and mark the <b>gates</b>: mandatory steps the product forces between the user and value. Reorder with ◀ ▶. You can add and rename stages from Exercise 2 as well — it is the same list, so whichever end you edit, both update.</p>
+    ${theory('the user journey',[
+      ['🗺️','A journey is the <b>sequence of stages</b> a user moves through to reach value — anchor it on the North Star event (here: the first transaction).'],
+      ['🔒','<b>Gates</b> are mandatory steps the product forces before delivering value (KYC, linking a bank). Every gate is a risk — gates are where journeys break.'],
+      ['📉','<b>Emotion dips flag friction</b> before you open any analytics. The lowest-emotion gate is your prime suspect.'],
+      ['🎯','End with a <b>hypothesis</b>: where do users drop, and why? You’ll test it against real data in Exercise 2.'],
+      ['🔻','<b>This list becomes your funnel.</b> Exercise 2 measures exactly the stages you write here — so a step you leave out is a step you will never see losing users. It works in both directions: if the data makes you realise a step is missing, add it there and it appears here.']])}
+    <div class="jmap">${stages}</div>
+    <div class="btnrow" style="align-items:center"><button class="act" onclick="addStage()">+ Add stage</button><span style="font-size:12px;color:var(--muted);font-weight:700">${rows.length===1?'start at first contact and keep adding until they have come back':'↔ scroll sideways to see every stage'}</span></div>
+    <div class="jov"><div class="cap" data-edu="A live state-map of your journey, drawn from the stage titles as you type. Red chips = gates; ◎ value is the North Star.">🗺️ Journey overview — updates live as you type · 🔒 = gate</div><div id="jmapviz">${jmapViz()}</div></div>
+    ${emoChart()}
+    <label class="fl">Your hypothesis — where do users drop, and why? (write this BEFORE opening the funnel data)</label>
+    <textarea oninput="U('ex1.hypo',this.value)" placeholder="We think the biggest drop is at ___ because ___">${esc(STATE.ex1.hypo)}</textarea>
+    <div class="hint">💡 Look at your emotion curve — a low point on a 🔒 gate is where products usually bleed. That's your hypothesis.</div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(0,true)">← Back</button><span class="sp"></span><button class="nav2 pri" onclick="markDoneAndNext(0)">Mark done · Exercise 2 →</button></div>
+  </div>`;
+}
+function emoChart(){
+  const rows=STATE.ex1.rows.filter(r=>r.emo!=='');
+  if(rows.length<2)return `<div class="emochart"><div class="cap">📈 Emotion curve</div><div style="color:var(--muted);font-size:13px">Rate at least two stages' emotions to draw the curve.</div></div>`;
+  const all=STATE.ex1.rows; const w=760,h=130,padL=10,padR=10,padT=16,padB=26;
+  const pw=w-padL-padR,ph=h-padT-padB;
+  const pts=[];
+  all.forEach((r,i)=>{ if(r.emo!==''){ const x=padL+(all.length===1?pw/2:i*pw/(all.length-1)); const y=padT+ph*(1-(parseInt(r.emo)-1)/4); pts.push({x,y,i,emo:r.emo,gate:r.gate,name:r.stage||('Stage '+(i+1))}); }});
+  const poly=pts.map(p=>p.x+','+p.y).join(' ');
+  const marks=pts.map((p,pi)=>{const anch=pi===0?'start':(pi===pts.length-1?'end':'middle');const lx=pi===0?Math.max(2,p.x-9):(pi===pts.length-1?p.x+9:p.x);
+    return `<circle cx="${p.x}" cy="${p.y}" r="9" fill="${p.gate?'#d03b3b':'#4F46E5'}" opacity="${p.gate?'1':'0.9'}"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="9" fill="#fff">${p.emo}</text><text x="${lx}" y="${h-6}" text-anchor="${anch}" font-size="9.5" font-weight="700" fill="#64748b">${p.name.slice(0,14)}</text>${p.gate?`<text x="${p.x}" y="${p.y-14}" text-anchor="middle" font-size="10">🔒</text>`:''}`;}).join('');
+  return `<div class="emochart"><div class="cap" data-edu="Your emotion ratings drawn as a curve. A dip that lands on a red gate dot is where products usually bleed — that is your hypothesis.">📈 Emotion curve — red dots are gates</div>
+    <svg viewBox="0 0 ${w} ${h}" width="100%"><polyline points="${poly}" fill="none" stroke="#4F46E5" stroke-width="2.2" stroke-linejoin="round" opacity="0.6"/>${marks}</svg></div>`;
+}
+/* ---------- Ex2 · Funnel ---------- */
+function pEx2(){
+  const rows=STATE.ex2.rows;
+  const first=parseFloat(rows[0].users)||0;
+  const viz=rows.map((r,idx)=>{
+    const u=parseFloat(r.users);
+    const wpct=(first>0&&!isNaN(u))?Math.max(7,u/first*100):Math.max(7,100-idx*16);
+    const isWorst=idx===worstStepIdx();
+    const conv= idx===0?'' :`<div class="fvconv"><div></div><div class="cc"><span class="eduu" data-edu="Step conversion = this stage ÷ the previous stage × 100. It finds the weak link — compare every step to its neighbours, not to the top.">step conv:</span> <input value="${esc(r.conv)}" oninput="U('ex2.rows.${idx}.conv',this.value)" placeholder="%"> <span class="comp" id="c2_${idx}">–</span></div><div></div></div>`;
+    /* The step name IS editable here, and it writes to ex1.rows — not to the
+       ex2 row, which syncFunnel overwrites on the next save and which would
+       therefore make this box a promise the page cannot keep. Same for the
+       tools: they move, insert into and delete out of the journey. The funnel
+       page is a second window onto one list, not a copy of it, so the rule that
+       matters is that no control here ever writes a structural field of ex2.
+       The gate toggle rides along on purpose: when the cliff lands on a 🔒, the
+       hypothesis the pair wrote before opening any data and the data itself are
+       on the same row, and nobody has to be told to notice. */
+    return conv+`<div class="fvrow">
+      <div class="fvname">
+        <div class="fvtools">
+          <button class="mv gt ${r.gate?'on':''}" onclick="U('ex1.rows.${idx}.gate',${r.gate?'false':'true'});render()" title="${r.gate?'This is a gate — click to unmark':'Mark as a gate (a mandatory step)'}">${r.gate?'🔒':'🔓'}</button>
+          ${idx>0?`<button class="mv" onclick="moveRow('ex1.rows',${idx},-1)" title="Move earlier in the journey">▲</button>`:''}
+          ${idx<rows.length-1?`<button class="mv" onclick="moveRow('ex1.rows',${idx},1)" title="Move later in the journey">▼</button>`:''}
+          <button class="mv" onclick="insStage(${idx})" title="Insert a stage after this one — it is added to the journey too">＋</button>
+          ${rows.length>1?`<button class="del" onclick="delStage(${idx})" title="Delete this stage from the journey and the funnel">✕</button>`:''}
+        </div>
+        <input class="stname ${r.gate?'gate':''} ${String(r.stage).trim()?'':'unnamed'}" id="stn_${idx}" value="${esc(String(r.stage))}" oninput="U('ex1.rows.${idx}.stage',this.value);paintFunnelNames()" placeholder="Stage ${idx+1} — name it">
+        <select class="evsel ${r.ev?'on':''}" onchange="U('ex2.rows.${idx}.ev',this.value);checkQuiet()" data-edu="Which event in the dashboard counts this stage. A journey stage with no event behind it is a stage you cannot manage — and an event the dashboard has that your journey does not is a step you forgot to draw."><option value="">measured by…</option>${EVENTS.map(e=>`<option value="${esc(e)}" ${r.ev===e?'selected':''}>${esc(e)}</option>`).join('')}</select></div>
+      <div class="fvbarwrap"><div class="fvbar ${isWorst?'bad':''}" id="fvbar_${idx}" style="width:${wpct}%">${!isNaN(u)?u.toLocaleString('en-US'):'—'}</div><span class="fvnum" id="fvnum_${idx}"></span></div>
+      <div class="fvin"><input inputmode="numeric" value="${esc(r.users)}" oninput="U('ex2.rows.${idx}.users',this.value);paintFunnelBars()" placeholder="users"> <span style="font-size:11px;color:var(--muted);font-weight:700">users</span></div>
+    </div>`;
+  }).join('');
+  /* With a one-stage journey there is no "first → last": both ends are the same
+     card, and a label reading "Overall Sign up → Sign up %" would be asking for
+     a number that is 100% by construction. Say what is missing instead. */
+  const oLab=overallLabel();
+  return `<div class="card">
+    <h1><span class="badge">2</span> Build the funnel from the data</h1>
+    <div class="phz"><span>🧍 Solo <b>4m</b></span><span class="a">→</span><span>👥 Pair <b>6m</b></span><span class="a">→</span><span>🗣 Debrief <b>5m</b></span></div>
+    <p class="goal">These are <b>your</b> stages from Exercise 1 — the funnel is built from them automatically, so there is nothing to retype. Edit them right here if you need to: renaming, reordering, adding (＋) or deleting (✕) a stage on this page <b>changes your journey too</b>, because it is the same list seen from the measuring end. For each stage, say which dashboard <b>event</b> counts it, then open <b>Nimbus Analytics → Funnels</b> and type the user count. Compute each <b>step conversion</b> yourself and check your math.</p>
+    ${theory('the funnel',[
+      ['🔻','The funnel is the journey, <b>measured</b>: one event per stage, anchored on the North Star. That is why these rows are your Exercise 1 stages and not a list we handed you — and why editing one end edits the other. Measuring a journey is how you find out you drew it wrong.'],
+      ['➗','<b>Step conversion</b> = this stage ÷ previous stage. <b>Overall</b> = this stage ÷ the top. Step finds the weak link; overall sizes the prize.'],
+      ['⛰️','A healthy funnel declines smoothly. A <b>cliff</b> — one step far below its neighbours — is your target.'],
+      ['⚖️','Check both the worst <b>%</b> and the biggest <b>absolute loss</b> — they usually agree, but always verify.'],
+      ['🕳️','<b>You cannot measure a stage you never drew.</b> If the dashboard reports an event and your journey has no stage for it, that is a step the product forces on real users and your map is silent about. Check my math will tell you.']])}
+    <div class="fviz">${viz}</div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label class="fl"><span class="eduu" data-edu="The transition with the LOWEST step conversion. It is your bottleneck candidate — Exercise 3 will confirm the cause.">Single worst step (the bottleneck)</span></label><input class="tx" value="${esc(STATE.ex2.worst)}" oninput="U('ex2.worst',this.value)" placeholder="e.g. Step 3 → Step 4"></div>
+      <div><label class="fl"><span class="eduu" id="ovlab" data-edu="Overall conversion = this stage ÷ the FIRST stage × 100. Step conversion finds the weak link; overall sizes what is left by the time you reach it. Watch which stage you end on — a funnel that stops at the first purchase and one that runs on to repeat use give very different answers to the same question.">${oLab}</span></label><input class="tx" value="${esc(STATE.ex2.overall)}" oninput="U('ex2.overall',this.value)" placeholder="%"></div>
+    </div>
+    <div class="btnrow" style="align-items:center"><button class="act" onclick="addStage()">+ Add stage at the end</button><button class="act" onclick="checkFunnel()">✓ Check my math</button><button class="act" onclick="goPage(1,true)">← Exercise 1 (same stages, full detail)</button><span style="font-size:12px;color:var(--muted);font-weight:700">edits here land in the journey too — your numbers travel with the stage when it moves</span></div>
+    <div class="result" id="ex2res"></div>
+    <div class="hint">ℹ️ <b>${rows.length} row${rows.length===1?'':'s'} — because that is how many stages you drew.</b> The dashboard reports six events, ending at <b>Repeat (30d)</b>. Everything up to the first transaction is <b>activation</b> — that is where you hunt the leak. Repeat is <b>retention</b>, and it matters because a funnel that stops at the first purchase cannot tell you whether the people you worked so hard to convert ever came back. Compute both, and keep them separate in your head: fixing activation and fixing retention are different jobs. If your journey has no stage for one of the six, add it right here with <b>＋</b> — it appears in your Exercise 1 journey too, waiting for its goal, action, touchpoint and emotion. A step you did not draw is a step you will never see losing users.</div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(1,true)">← Back</button><span class="sp"></span><button class="nav2 pri" onclick="markDoneAndNext(1)">Mark done · Exercise 3 →</button></div>
+  </div>`;
+}
+/* One definition of this label, used by the render and by the live repaint. Two
+   copies would drift the moment one of them was edited, and the drift would be
+   invisible until someone renamed a stage and the heading stopped agreeing with
+   the row above it. */
+function overallLabel(){
+  const rows=STATE.ex2.rows;
+  if(rows.length<2)return 'Overall % — add a second stage first';
+  return `Overall ${esc(String(rows[0].stage).trim())||'first'} → ${esc(String(rows[rows.length-1].stage).trim())||'last'} %`;
+}
+/* Typing a stage name must not re-render: the input being typed into would be
+   replaced mid-keystroke and lose the caret. So the two things on this page that
+   depend on a name are repainted by hand — the italic "unnamed" state of the box
+   itself, and the overall-conversion heading, which quotes the first and last
+   stage by name. Everything structural (add, move, delete, gate) does re-render,
+   because there the row set itself has changed. */
+function paintFunnelNames(){
+  const rows=STATE.ex2.rows;
+  rows.forEach((r,idx)=>{
+    const el=document.getElementById('stn_'+idx);
+    if(el)el.classList.toggle('unnamed',!String(r.stage).trim());
+  });
+  const ov=document.getElementById('ovlab');
+  if(ov)ov.innerHTML=overallLabel();
+  paintJmap();
+}
+function worstStepIdx(){
+  const rows=STATE.ex2.rows;let wi=-1,wv=1e9;
+  for(let i=1;i<rows.length;i++){const u=parseFloat(rows[i].users),pu=parseFloat(rows[i-1].users);if(!isNaN(u)&&!isNaN(pu)&&pu>0){const c=u/pu;if(c<wv){wv=c;wi=i;}}}
+  return wi;
+}
+function paintFunnelBars(){
+  const rows=STATE.ex2.rows;const first=parseFloat(rows[0].users)||0;const wi=worstStepIdx();
+  rows.forEach((r,idx)=>{
+    const el=document.getElementById('fvbar_'+idx);if(!el)return;
+    const u=parseFloat(r.users);
+    const wpct=(first>0&&!isNaN(u))?Math.max(7,u/first*100):Math.max(7,100-idx*16);
+    el.style.width=wpct+'%';
+    const label=!isNaN(u)?u.toLocaleString('en-US'):'—';
+    el.textContent=label;
+    el.classList.toggle('bad',idx===wi);
+    // Measure, do not guess. A 6.7% bar is unreadable on a phone and perfectly
+    // readable on a projector; the only honest test is whether the text fits
+    // the box it is in right now.
+    const out=document.getElementById('fvnum_'+idx);
+    if(out){
+      el.classList.remove('tiny');
+      const fits=el.scrollWidth<=el.clientWidth+1;
+      el.classList.toggle('tiny',!fits);
+      out.textContent=fits?'':label;
+    }
+  });
+}
+function checkFunnel(){
+  const rows=STATE.ex2.rows;let allOk=true;
+  for(let idx=1;idx<rows.length;idx++){
+    const u=parseFloat(rows[idx].users),pu=parseFloat(rows[idx-1].users);
+    const cell=document.getElementById('c2_'+idx);
+    if(!cell)continue;
+    if(isNaN(u)||isNaN(pu)||pu===0){cell.textContent='–';continue;}
+    const comp=Math.round(u/pu*100);
+    const theirs=parseFloat(rows[idx].conv);
+    const match=!isNaN(theirs)&&Math.abs(theirs-comp)<=1;
+    cell.innerHTML=`<span class="${match?'ok':'no'}">${comp}%</span>`;
+    if(!isNaN(theirs)&&!match)allOk=false;
+  }
+  const wi=worstStepIdx();
+  const nm=i=>esc(String(rows[i].stage).trim())||('stage '+(i+1));
+  const first=parseFloat(rows[0].users),last=parseFloat(rows[rows.length-1].users);
+  const overall=(rows.length>1&&!isNaN(first)&&!isNaN(last)&&first)?(last/first*100):null;
+  const res=document.getElementById('ex2res');res.classList.add('show');
+  let msg='<b>Computed conversions filled in.</b> ';
+  if(wi>0){const u=parseFloat(rows[wi].users),pu=parseFloat(rows[wi-1].users);msg+=`Worst step: <b>${nm(wi-1)} → ${nm(wi)}</b> at <b>${Math.round(u/pu*100)}%</b> (lost ${Math.round(pu-u).toLocaleString('en-US')} users). `;}
+  if(overall!=null)msg+=`Overall ${nm(0)} → ${nm(rows.length-1)} ≈ <b>${overall.toFixed(1)}%</b>. `;
+  // Every stage as a share of the top, computed from what they typed. Step
+  // conversion finds the weak link; this shows what survives to each stage --
+  // and it puts the cost of ending a funnel one step early on screen.
+  if(!isNaN(first)&&first>0){
+    const chain=rows.map(r=>{const u=parseFloat(r.users);return (isNaN(u)||!String(r.stage).trim())?null:`${esc(r.stage)} <b>${(u/first*100).toFixed(1)}%</b>`;}).filter(Boolean);
+    if(chain.length>2)msg+=`<br><span style="color:var(--muted);font-weight:600">Share of the very top at each stage: ${chain.join(' → ')}.</span> `;
+  }
+  msg+= allOk?`<span class="ok">Your arithmetic checks out ✓</span>`:`<span class="no">Some of your % don't match — compare and see where.</span>`;
+  const cov=coverageReport();
+  if(cov)msg+=cov;
+  res.innerHTML=msg;
+}
+/* ---- does the journey cover the instrument? ---------------------------------
+   Exercise 2 used to be six pre-typed rows, which quietly guaranteed that every
+   room measured all six dashboard events whether or not anybody had thought
+   about them. Now the funnel is the pair's own journey, so that guarantee is
+   gone — and getting it back by handing them the answer would put us straight
+   back where we started. Instead the sheet checks their map against the
+   instrument and names the gap: an event the dashboard reports that no stage
+   claims is a step the product forces on real users and their map is silent
+   about, which is exactly the finding Exercise 1 is meant to produce. It is
+   deliberately reported AFTER the arithmetic verdict, so a pair reads it as
+   "and here is what your map missed", not as a checklist to fill before
+   thinking. */
+function coverageReport(){
+  const rows=STATE.ex2.rows;
+  const claimed={};                                   // event -> [stage indexes]
+  rows.forEach((r,i)=>{const e=String(r.ev||'').trim();if(e){(claimed[e]=claimed[e]||[]).push(i);}});
+  const missing=EVENTS.filter(e=>!claimed[e]);
+  const dupes=Object.keys(claimed).filter(e=>claimed[e].length>1);
+  const unmapped=rows.map((r,i)=>i).filter(i=>!String(rows[i].ev||'').trim());
+  // Order check: read off the mapped rows in journey order and see whether the
+  // events they name run the same way the dashboard reports them. A journey
+  // that verifies identity before signing up is not a typo, it is a claim about
+  // the product — and it is a claim the product does not support.
+  const seq=rows.map(r=>EVENTS.indexOf(String(r.ev||'').trim())).filter(k=>k>=0);
+  const outOfOrder=seq.some((k,i)=>i>0&&k<seq[i-1]);
+  const bits=[];
+  if(unmapped.length===rows.length){
+    return `<br><span style="color:var(--muted);font-weight:600">Next: tell each row which dashboard event counts it (the “measured by…” box). That is what lets this sheet check your journey against what the product actually reports.</span>`;
+  }
+  if(missing.length)bits.push(`<b class="no">Your journey has no stage for ${missing.length===1?'this event':'these events'}: ${missing.map(e=>esc(e)).join(', ')}.</b> The dashboard reports ${missing.length===1?'it':'them'} — real users are going through ${missing.length===1?'that step':'those steps'} whether or not your map says so. A step you did not draw is a step you cannot see losing users. Add ${missing.length===1?'it':'them'} right here with <b>＋</b> on the row it comes after — the stage appears in your Exercise 1 journey too, waiting for you to say what the user wanted there.`);
+  if(dupes.length)bits.push(`<b class="no">Two stages claim the same event (${dupes.map(e=>esc(e)).join(', ')}.)</b> One event can only count one step — split them, or merge the stages.`);
+  if(outOfOrder)bits.push(`<b class="no">Your stages run in a different order than the dashboard's events.</b> Either the journey is drawn out of sequence, or you have mapped a stage to the wrong event.`);
+  if(unmapped.length&&unmapped.length<rows.length)bits.push(`<span style="color:var(--muted);font-weight:600">${unmapped.length} stage${unmapped.length===1?'' :'s'} still ${unmapped.length===1?'has':'have'} no event behind ${unmapped.length===1?'it':'them'} (${unmapped.map(i=>esc(String(rows[i].stage).trim())||('stage '+(i+1))).join(', ')}). A stage you cannot measure is a stage you cannot manage — that is a finding, not a gap to hide.</span>`);
+  if(!bits.length&&!missing.length)bits.push(`<span class="ok">Every event the dashboard reports has a stage in your journey ✓</span>`);
+  return '<br>'+bits.join(' ');
+}
+/* ---------- Ex3 · Bottleneck ---------- */
+/* The eight dimensions the analytics comparison bar actually offers. Keeping
+   this list identical to the dashboard's DIMS matters both ways: offer a
+   dimension the tool cannot build and you teach a segment nobody can check;
+   leave one out and the room never finds the confounder hiding in it.      */
+const DIM_OPTS=['Platform','Channel','Country','Device model','App version','Sign-up week','ID document','ID-photo retries'];
+function dimSel(idx,cur){
+  const opts=[''].concat(DIM_OPTS);              // blank first: pick your own scan
+  if(cur&&opts.indexOf(cur)<0)opts.unshift(cur);   // a workbook saved under an older label
+  return `<select style="width:100%;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-weight:700;font-size:13px;background:#fff" onchange="U('ex3.seg.${idx}.dim',this.value);paintSegLadder()">${opts.map(o=>`<option value="${esc(o)}" ${o===cur?'selected':''}>${o||'— pick a dimension —'}</option>`).join('')}</select>`;
+}
+/* 95% margin on a single proportion, in percentage points. Kept because it is
+   the right tool for "how well do I know THIS segment's rate" — it is the wrong
+   tool for "is this GAP real", which is what the card is actually asking.    */
+/* Agresti-Coull, not textbook Wald. Wald's sqrt(p(1-p)/n) goes to ZERO as p goes
+   to 0 or 1, so a segment where nobody converted prints "+/-0.0pp" - a claim of
+   perfect precision made on the thinnest possible evidence, and precisely the
+   direction a workshop about sample size must not be wrong in. Adding z^2/2
+   successes and z^2/2 failures (the standard adjusted-Wald correction) keeps the
+   margin finite everywhere and changes the answer by under 0.01pp at the sizes
+   this kit actually deals in - Romania's 30.22% of 7,698 is +/-1.03 either way. */
+function moePP(rate,n){
+  const p=rate/100; if(!(n>0)||!(p>=0)||!(p<=1))return null;
+  const z=1.96, nt=n+z*z, pt=(p*n+z*z/2)/nt;
+  return z*Math.sqrt(pt*(1-pt)/nt)*100;
+}
+/* 95% margin on the DIFFERENCE between two proportions. This is the one the
+   built-segment card needs, and using the single-proportion form instead is a
+   real bug, not a simplification: the single form asks only how precisely you
+   know one side, so it gives DIFFERENT answers depending on which of the two
+   segments the participant happened to type into the card.
+
+   On the kit's own numbers — Android-in-Romania 30.22% of 7,698 against
+   Android-in-Moldova 29.16% of 4,558, a gap of 1.06pp — the old code said
+   "±1.03, worth explaining" from the Romania side and "±1.32, inside the
+   noise" from the Moldova side. Same data, opposite verdicts, in the exercise
+   about not trusting a number until you know what is under it. The correct
+   half-width is ±1.67 and the gap is null from either side.
+
+   Comparator n is optional because a room that has only written down one side
+   should still get an answer. Falling back to n2 = n1 is the honest default:
+   it is symmetric under swapping the two segments, so the card can no longer
+   contradict itself, and it is conservative when the comparator is the larger
+   group. Type the real comparator size and the number gets sharper.         */
+function gapMoe(n1,r1,n2,r2){
+  const p1=r1/100, p2=r2/100;
+  if(!(n1>0)||!(n2>0))return null;
+  if(!(p1>=0&&p1<=1&&p2>=0&&p2<=1))return null;
+  /* Agresti-Caffo: add one success and one failure to each arm before taking the
+     standard error. Same reason as moePP above, and here the failure was not
+     theoretical - two arms that both converted at 0% (or both at 100%) gave
+     se=0, so m=0, and the card compared a 0.0pp gap against a 0.0pp margin with
+     a STRICT "<". Zero is not less than zero, so the card fell through to the
+     confident branch and told a pair that a gap of nothing between two empty
+     segments was "comfortably bigger than the noise, so it is worth explaining."
+     That is the worst sentence this kit could print, and the smallest segment a
+     participant can build is exactly where they would meet it.
+     The correction is invisible at real sizes: the documented Romania/Moldova
+     case is +/-1.67 under both forms. */
+  const n1t=n1+2, n2t=n2+2;
+  const p1t=(p1*n1+1)/n1t, p2t=(p2*n2+1)/n2t;
+  const se=Math.sqrt(p1t*(1-p1t)/n1t + p2t*(1-p2t)/n2t);
+  return 1.96*se*100;
+}
+/* Pooled two-proportion z — the same shape the dashboard uses in zGap(). The
+   card decides on the confidence interval (that is what "±" means), and quotes
+   z so anyone who wants to check the call can. */
+function gapZ(n1,r1,n2,r2){
+  const p1=r1/100, p2=r2/100;
+  if(!(n1>0)||!(n2>0))return null;
+  const p=(p1*n1+p2*n2)/(n1+n2);
+  const den=Math.sqrt(p*(1-p)*(1/n1+1/n2));
+  return den>0 ? Math.abs(p1-p2)/den : null;
+}
+function numOf(v){const n=parseFloat(String(v==null?'':v).replace(/[\s,]/g,''));return isNaN(n)?NaN:n;}
+function builtCheck(b){
+  const n=numOf(b.n),r=numOf(b.rate),g=numOf(b.gap);
+  let cn=numOf(b.cn);
+  if(isNaN(n)||isNaN(r))return{txt:'±?',tip:'Type the segment size and its rate — the comparison bar prints both on the chip — and this becomes the 95% margin of error on your gap.'};
+  if(moePP(r,n)==null)return{txt:'±?',tip:'A rate is a percentage between 0 and 100, and a segment needs at least one user in it. An empty segment is a finding, but it is not a rate.'};
+  const N=Math.round(n).toLocaleString('en-US');
+  if(isNaN(g)){
+    const m1=moePP(r,n);
+    return{txt:'±'+m1.toFixed(1),tip:`At n=${N} this segment's own rate carries a 95% margin of ±${m1.toFixed(1)}pp. Fill in the gap — the difference against the group you are holding it up to — and this becomes the margin on the GAP, which is the number that decides whether you have a finding.`};
+  }
+  /* the comparator's rate is implied by the gap the participant typed */
+  const r2=r-g;
+  const assumed=!(cn>0);
+  if(assumed)cn=n;                      /* symmetric fallback, see gapMoe */
+  const m=gapMoe(n,r,cn,r2);
+  if(m==null)return{txt:'±?',tip:'The gap implies a comparator rate outside 0–100%. Check the sign: the gap is this segment minus the group you are holding it against, so a segment that converts worse takes a negative gap.'};
+  const z=gapZ(n,r,cn,r2);
+  const t='±'+m.toFixed(1);
+  const CN=Math.round(cn).toLocaleString('en-US');
+  const basis=assumed
+    ? `against a comparator assumed to be the same size (n=${CN}) — type the other side's n and this sharpens`
+    : `against a comparator of n=${CN}`;
+  const zTxt=z!=null?` (z=${z.toFixed(2)})`:'';
+  const thin=Math.abs(g)<=m;   // <=, not <: a gap exactly equal to its own margin is not a finding
+  return{txt:t,thin:thin,tip:thin
+    ? `Your gap is ${Math.abs(g).toFixed(1)}pp; the 95% margin ON THE GAP is ±${m.toFixed(1)}pp at n=${N} ${basis}${zTxt}. The gap is inside the noise — you cannot tell it from zero. Report that as "no detectable difference", never as a small effect, and never build against it.`
+    : `Your gap is ${Math.abs(g).toFixed(1)}pp against a 95% margin ON THE GAP of ±${m.toFixed(1)}pp at n=${N} ${basis}${zTxt} — comfortably bigger than the noise, so it is worth explaining.`};
+}
+const VERDICTS=[['','— verdict —'],['survived','✅ Gap survived'],['dissolved','❌ Gap dissolved'],['reversed','🔄 Gap reversed']];
+function paintBuilt(){
+  STATE.ex3.built.forEach((b,idx)=>{
+    const el=document.getElementById('bmoe_'+idx); if(!el)return;
+    const c=builtCheck(b);
+    el.innerHTML='<span class="k">95% margin</span>'+c.txt+'pp';
+    el.setAttribute('data-edu',c.tip);
+    el.style.background=c.thin?'#fef3c7':''; el.style.color=c.thin?'#92400e':'';
+  });
+  paintSegLadder();
+}
+function segLadder(){
+  const E=STATE.ex3;
+  const scanned=E.seg.filter(s=>(s.best||'').trim()&&(s.worst||'').trim());
+  const built=E.built.filter(b=>(b.name||'').trim());
+  const judged=built.filter(b=>b.verdict);
+  const killed=(E.killed||'').trim();
+  const chip=(on,txt)=>`<span class="jnode ${on?'':'empty'}" style="${on?'border-color:#7bc98a;background:#f2fbf3;color:#067306':''}">${on?'✓ ':''}${txt}</span>`;
+  const nodes=[chip(scanned.length>0,'🔍 '+scanned.length+' scanned'),
+               chip(built.length>0,'🧱 '+built.length+' built'),
+               chip(judged.length>0,'⚖️ '+judged.length+' judged'),
+               chip(!!killed,'🪦 one killed')].join('<span class="jarr">→</span>');
+  let verdict;
+  if(!scanned.length)     verdict='Start with one dimension at a time — best against worst.';
+  else if(!built.length)  verdict='<span style="color:#b45309">You have candidates, not causes. Build the combined segment before you believe any of them.</span>';
+  else if(!judged.length) verdict='Now say it out loud: did each built segment’s gap <b>survive</b>, <b>dissolve</b> or <b>reverse</b>?';
+  else if(!killed)        verdict='<span style="color:#b45309">Name the candidate that dissolved. A room that killed nothing did not control for anything.</span>';
+  else                    verdict='Scanned, built, judged, and one hypothesis buried — <b>controlled ✓</b>';
+  const noisy=built.filter(b=>builtCheck(b).thin);
+  const noise=noisy.length?`<br><span style="color:#b45309">${noisy.length===1?'One built segment has a gap':noisy.length+' built segments have gaps'} inside the margin of error — that is a null result, not a small effect.</span>`:'';
+  /* The one prompt in the workbook that is deliberately withheld until the
+     ladder is complete. A pair that has scanned, built, judged and killed has
+     earned the question; putting it on the page from the start replaces their
+     investigation with ours, and the facilitator rubric asks for the same
+     restraint out loud. It names no dimension, no value and no answer — it only
+     asks whether the group they are about to blame is still ONE population.
+     Two of the eight dimensions describe the phone and the build running on it;
+     on this dataset those two come apart, and the fix underneath changes size
+     when they do. Nothing here is guaranteed to fire: a room that scans, builds,
+     judges and kills has done the exercise, with or without the last cut.     */
+  const deeper=(scanned.length&&built.length&&judged.length&&killed)
+    ? `<br><span style="color:#0b5cad">One more question before you write it up: <b>is the group you just blamed one population?</b> Take the segment that survived and cut it again — once by something about the <b>hardware</b>, once by something about the <b>build it is running</b>. If the halves come apart, the name you were about to put in the diagnosis is a container, not a cause, and what is underneath it is a different size and a different price.</span>`
+    : '';
+  return `<div class="jflow" style="align-items:center">${nodes}</div>
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:8px">${verdict}${noise}${deeper}</div>`;
+}
+function paintSegLadder(){const el=document.getElementById('segladder');if(el)el.innerHTML=segLadder();}
+function pEx3(){
+  const rows=STATE.ex2.rows;
+  const nm3=i=>esc(String(rows[i].stage).trim())||('stage '+(i+1));
+  /* One transition per pair of adjacent journey stages, so a room that drew a
+     two-stage journey gets exactly one thing it can pin — which is honest, and
+     visibly thin, and sends them back to Exercise 1 rather than letting them
+     pick a bottleneck out of a list somebody else wrote. */
+  const opts=rows.length<2
+    ? `<div class="pinopt" style="cursor:default;border-style:dashed;color:var(--muted)"><div><div class="steps">No transition to pin yet</div><div class="pct">A bottleneck lives <i>between</i> two stages. Your journey has ${rows.length}. Go back to <b>Exercise 1</b> and keep building until the user has reached value and come back.</div></div></div>`
+    : rows.slice(1).map((r,i)=>{
+    const idx=i+1;
+    const u=parseFloat(rows[idx].users),pu=parseFloat(rows[idx-1].users);
+    const pct=(!isNaN(u)&&!isNaN(pu)&&pu>0)?Math.round(u/pu*100)+'%':'—';
+    return `<div class="pinopt ${STATE.ex3.pin===idx?'on':''}" onclick="U('ex3.pin',${idx});render()">
+      <div><div class="steps">${rows[idx].gate?'🔒 ':''}${nm3(idx-1)} → ${nm3(idx)}</div><div class="pct">step conversion: ${pct}</div></div>
+      <span class="flag">🚩</span></div>`;
+  }).join('');
+  const TRI=[['📊 The funnel says','Funnel'],['🧩 The segments say','Segment split'],['💬 The users say','Reviews']];
+  const tri=STATE.ex3.ev.map((e,idx)=>`
+    <div class="tricard ${e.note?'filled':''}">
+      <div class="tt">${TRI[idx][0]}</div>
+      ${srcDrop(idx)}
+      <textarea oninput="U('ex3.ev.${idx}.note',this.value);paintDiagOv()" placeholder="the specific number or quote">${esc(e.note)}</textarea>
+    </div>`).join('');
+  /* Scan rows. The dimension is a dropdown now, not a caption: the room picks
+     what to look at, which is the only way "we checked the obvious ones" can
+     ever become a real claim. Gap is typed, not derived — best and worst are
+     free text ("Android 33%") on purpose, because reading a number off a chart
+     and writing it down is the skill; parsing it for them removes it.        */
+  const seg=STATE.ex3.seg.map((s,idx)=>`<tr>
+    <td style="width:150px;padding:6px">${dimSel(idx,s.dim)}</td>
+    <td style="padding:6px"><input class="tx" style="padding:8px" value="${esc(s.best)}" oninput="U('ex3.seg.${idx}.best',this.value);paintSegLadder()" placeholder="best segment + %"></td>
+    <td style="padding:6px"><input class="tx" style="padding:8px" value="${esc(s.worst)}" oninput="U('ex3.seg.${idx}.worst',this.value);paintSegLadder()" placeholder="worst segment + %"></td>
+    <td style="padding:6px;width:86px"><input class="tx" style="padding:8px;text-align:center" value="${esc(s.gap)}" oninput="U('ex3.seg.${idx}.gap',this.value);paintSegLadder()" placeholder="pp"></td>
+    <td style="padding:6px;width:26px"><button class="del" onclick="delRow('ex3.seg',${idx})">✕</button></td></tr>`).join('');
+  /* Build cards. Each one is a compound segment the group actually assembled in
+     the comparison bar, with the margin of error computed live off their own n
+     — because "Android in Moldova converts 9pp worse" on 180 users is a
+     sentence about noise, and the only way to teach that is to price it while
+     they are typing it.                                                       */
+  const built=STATE.ex3.built.map((b,idx)=>{
+    const c=builtCheck(b);
+    return `<div class="initw">
+      <div class="ihead"><div class="prio">🧱</div>
+        <input class="iname" value="${esc(b.name)}" oninput="U('ex3.built.${idx}.name',this.value);paintSegLadder()" placeholder="Segment ${idx+1} — name it as the comparison bar does, e.g. Platform = X AND Channel = Y">
+        <button class="del" onclick="delRow('ex3.built',${idx})">✕</button></div>
+      <div class="scorerow">
+        <div class="fld"><span class="k eduu" data-edu="How many users are in the compound segment. The comparison bar prints it on the chip. This is the number that decides whether your gap is a finding or a coin flip.">Users (n)</span><input class="mini" style="width:74px" value="${esc(b.n)}" oninput="U('ex3.built.${idx}.n',this.value);paintBuilt()" placeholder="e.g. 1800"></div>
+        <div class="fld"><span class="k eduu" data-edu="The bottleneck step's conversion rate INSIDE this segment, as a percentage.">Rate %</span><input class="mini" value="${esc(b.rate)}" oninput="U('ex3.built.${idx}.rate',this.value);paintBuilt()" placeholder="e.g. 30"></div>
+        <div class="fld"><span class="k eduu" data-edu="This segment's rate minus the rate of the group you are holding it against, in percentage points. Negative means worse. Compare like with like — the same step, the same window.">Gap (pp)</span><input class="mini" value="${esc(b.gap)}" oninput="U('ex3.built.${idx}.gap',this.value);paintBuilt()" placeholder="e.g. -8"></div>
+        <div class="fld"><span class="k eduu" data-edu="How many users are in the group you are comparing AGAINST — the other chip in the comparison bar. Optional: leave it blank and the margin assumes the comparator is the same size as your segment, which is symmetric but blunt. Fill it in and the margin on the gap is exact. A gap is a statement about two samples, so both sizes matter.">vs n</span><input class="mini" style="width:74px" value="${esc(b.cn)}" oninput="U('ex3.built.${idx}.cn',this.value);paintBuilt()" placeholder="optional"></div>
+        <div class="fld"><span class="k eduu" data-edu="Did the gap you found by scanning survive once you held the other dimension constant? Survived = the candidate is still alive. Dissolved = the first dimension was standing in for this one — the common outcome here, and the one worth the most. Reversed = the gap changed sign once you controlled for the other dimension (Simpson's paradox); it is rare, it is on the list so you recognise it in your own data, and on Nimbus you are unlikely to find one.">Verdict</span><select class="mini" style="width:132px" onchange="U('ex3.built.${idx}.verdict',this.value);paintSegLadder()">${VERDICTS.map(([v,l])=>`<option value="${v}" ${b.verdict===v?'selected':''}>${l}</option>`).join('')}</select></div>
+        <div class="icec" id="bmoe_${idx}" data-edu="${esc(c.tip)}"><span class="k">95% margin</span>${c.txt}pp</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <h1><span class="badge">3</span> Diagnose the bottleneck</h1>
+    <div class="phz"><span>🧍 Solo <b>7m</b></span><span class="a">→</span><span>👥 Pair <b>11m</b></span><span class="a">→</span><span>🗣 Debrief <b>7m</b></span></div>
+    <p class="goal">Pin the bottleneck, <b>scan</b> one dimension at a time for candidates, then <b>build</b> the combined segment and see which candidate survives. Finish by triangulating with what users <b>say</b>. A gap that survives being held constant, plus a voice, is a diagnosis.</p>
+    ${theory('diagnosing a bottleneck',[
+      ['📍','<b>Locate</b> — the worst step of the funnel is the bottleneck.'],
+      ['🧩','<b>Scan</b> — break the step down one dimension at a time (platform, channel, country…) to see where the pain concentrates. A blended 40% can hide a 30% vs 52% split. What you get out of this is <b>candidates, not causes</b>.'],
+      ['🧱','<b>Build</b> — combine two dimensions in the comparison bar and re-check. On Bloom, mobile web converted 19 points worse than desktop; hold the <i>checkout type</i> still and most of that gap went away, because guests were disproportionately on mobile web. The device was never the cause — it was <b>standing in for the checkout gate</b>. That is a confounder, and scanning alone can never find one.'],
+      ['🔬','<b>Price the noise.</b> A gap smaller than the margin of error on your own sample is a <b>null result</b>, not a small effect. Slice far enough and you can always find a 9pp gap on 180 users.'],
+      ['💬','<b>Explain</b> — read the reviews, tickets and NPS for that step. Quant finds <i>where</i>; qual explains <i>why</i>.'],
+      ['🎯','<b>Triangulate</b> — but only <b>independent</b> sources count. The funnel, the scan, the built segment and Flows are four views of the <i>same</i> event stream; reviews and tickets are the separate witness. Aim for at least one of each.'],
+      ['🐞','<b>Step zero: rule out a tracking bug.</b> If the event simply does not fire on Android, every chart agrees with every other chart and all of them are wrong. Ask it before you blame the design.']])}
+    <h2 data-edu="Pick the transition with the lowest step conversion — computed live from YOUR Exercise-2 numbers.">① Pin the bottleneck 🚩</h2>
+    <p class="goal">Click the transition where your funnel breaks.</p>
+    <div class="pinrow">${opts}</div>
+    <h2 style="margin-top:20px" data-edu="One blended number can hide a 30% vs 52% split. Add ONE comparison at a time in the analytics comparison bar and note best vs worst on your pinned step. This produces candidates — a dimension worth investigating — never a cause.">② Scan — one dimension at a time</h2>
+    <p class="goal">Analytics → <b>+ Add comparison</b>, one dimension, best value vs worst value on your pinned step. Then clear it and try the next. You are collecting <b>candidates</b>.</p>
+    <table style="width:100%;border-collapse:collapse"><thead><tr>
+      <th style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 6px 4px">Dimension</th>
+      <th style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 6px 4px">Best</th>
+      <th style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 6px 4px">Worst</th>
+      <th style="text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 6px 4px">Gap</th><th></th>
+    </tr></thead><tbody>${seg}</tbody></table>
+    <div class="btnrow"><button class="act" onclick="addRow('ex3.seg',{dim:'',best:'',worst:'',gap:''})">+ Scan another dimension</button></div>
+    <h2 style="margin-top:20px" data-edu="Two comparisons at once. Take your strongest candidate, hold a second dimension constant, and see whether the gap survives, dissolves or reverses. This is the only step in the whole exercise that can tell a cause from a coincidence.">③ Build — combine, and see what survives</h2>
+    <p class="goal">Take your biggest gap and hold something else constant: <b>+ Add comparison</b> twice on one chip (<i>your candidate</i> <b>AND</b> <i>the thing you suspect is really driving it</i>), then a <b>second chip</b> that changes <b>exactly one</b> condition — the candidate flips to its other value, the control stays put. Compare those two, not one of them against everybody — a compound group held up against <i>All users</i> tells you it is unusual, never which half made it so. Then say what happened.</p>
+    ${built}
+    <div class="btnrow"><button class="act" onclick="addRow('ex3.built',{name:'',n:'',rate:'',gap:'',verdict:''})">+ Add built segment</button></div>
+    <label class="fl" style="margin-top:16px"><span class="eduu" data-edu="The candidate that looked like a cause until you held something else constant. Naming it is the proof you controlled for anything at all — a room that killed nothing just confirmed its first guess.">🪦 The hypothesis you killed</span></label>
+    <textarea data-gate="killed" oninput="U('ex3.killed',this.value);paintSegLadder()" placeholder="Name the belief and the number that killed it — e.g. on Bloom, 'mobile web is a bad experience' died when guests-on-mobile and guests-on-desktop landed within a point of each other.">${esc(STATE.ex3.killed)}</textarea>
+    <div class="jov"><div class="cap" data-edu="Scan → build → judge → kill. The strip goes green as you climb; the line underneath tells you what is still missing before you can call anything a cause.">🪜 Evidence ladder — candidates become causes here</div><div id="segladder">${segLadder()}</div></div>
+    <h2 style="margin-top:20px" data-edu="Three charts are not three sources. The funnel, the scan, the built segment and Flows all read the same event stream — if the event is broken they agree with each other and all of them are wrong. At least one piece of evidence has to be what users SAY.">④ Triangulate — and at least one source can't be a chart</h2>
+    <p class="goal">A built segment is <i>harder-won</i> evidence, not <i>independent</i> evidence. It still comes off the same event stream.</p>
+    <div class="tri">${tri}</div>
+    <div class="diagbox">
+      <h2 style="margin-bottom:4px">Your diagnosis</h2>
+      <div class="diag">Users drop at <input value="${esc(STATE.ex3.who)}" oninput="U('ex3.who',this.value);paintDiagOv()" placeholder="which step / screen"> because <input value="${esc(STATE.ex3.why)}" oninput="U('ex3.why',this.value);paintDiagOv()" placeholder="the root cause">.</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="The specific, fixable thing — a screen, a bug, a policy. You can build against a cause.">Root cause (fixable)</span></label><textarea oninput="U('ex3.cause',this.value)" placeholder="A screen, a bug or a policy you could put an engineer on this week">${esc(STATE.ex3.cause)}</textarea></div>
+        <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="The vague feeling — like onboarding feels bad. You cannot build against a symptom; keep digging until you can name the cause.">Symptom (don't fix this)</span></label><textarea oninput="U('ex3.symptom',this.value)" placeholder="e.g. 'onboarding feels bad'">${esc(STATE.ex3.symptom)}</textarea></div>
+      </div>
+    </div>
+    <div class="jov"><div class="cap" data-edu="Lights up as your three evidence sources fill in. All three green + a diagnosis sentence = triangulated.">🩺 Diagnosis overview — builds as you fill the evidence</div><div id="diagov">${diagOv()}</div></div>
+    <div class="hint">💡 A diagnosis needs <b>3 pieces of evidence, and at least one of them can't be a chart</b>. One chart isn't a diagnosis — it's a hunch. Three charts off one event stream is still one hunch wearing three outfits, and the segment you built yourself is a fourth outfit, not a second witness. <b>Hard mode:</b> before you present, build one segment you <i>expect</i> to confirm your cause and report it whether it does or not.</div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(2,true)">← Back</button><span class="sp"></span><button class="nav2 pri" onclick="markDoneAndNext(2)">Mark done · Exercise 4 →</button></div>
+  </div>`;
+}
+/* ---------- Ex4 · Plan ---------- */
+function pEx4(){
+  const inits=STATE.ex4.inits;
+  const ranks=(function(){const sc=inits.map((it,idx)=>({idx,ice:(parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0)}));const so=sc.filter(s=>s.ice>0).sort((a,b)=>b.ice-a.ice);const m={};so.forEach((s,i)=>m[s.idx]=i+1);return m;})();
+  const cards=inits.map((it,idx)=>{
+    const ice=(parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0);
+    return `<div class="initw">
+      <div class="ihead"><div class="prio ${ranks[idx]===1?'p1':''}">${ranks[idx]?('#'+ranks[idx]):'–'}</div>
+        <input class="iname" value="${esc(it.name)}" oninput="U('ex4.inits.${idx}.name',this.value);paintPlanOv()" placeholder="Initiative ${idx+1} — the bet">
+        <button class="del" onclick="delRow('ex4.inits',${idx})">✕</button></div>
+      <div class="grid2">
+        <div><label class="fl" style="margin-top:0">Hypothesis (traces to Ex-3 evidence)</label><textarea style="min-height:52px" oninput="U('ex4.inits.${idx}.hyp',this.value)" placeholder="Because …">${esc(it.hyp)}</textarea></div>
+        <div><label class="fl" style="margin-top:0">Key actions</label><textarea style="min-height:52px" oninput="U('ex4.inits.${idx}.actions',this.value)" placeholder="what eng & design build">${esc(it.actions)}</textarea></div>
+      </div>
+      <div class="scorerow">
+        <div class="fld"><span class="k eduu" data-edu="Expected lift: how many percentage points (pp) this initiative should add to the KPI if it works. All lifts together must cover the gap to target.">Exp. lift</span><input class="mini" value="${esc(it.pp)}" oninput="U('ex4.inits.${idx}.pp',this.value);paintCov();paintCost()" placeholder="+pp"></div>
+        <div class="fld"><span class="k eduu" data-edu="T-shirt size of the build cost: Small, Medium, Large. Cheap, high-ICE bets ship first.">Effort</span><select class="mini" onchange="U('ex4.inits.${idx}.eff',this.value)">${['S','M','L'].map(o=>`<option ${it.eff===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="fld"><span class="k eduu" data-edu="Person-weeks of build: one engineer for one week = 1. Two engineers for three weeks = 6. This is the number that turns a T-shirt size into money — and the one an engineer can actually argue with.">Person-wks</span><input class="mini" value="${esc(it.wk)}" oninput="U('ex4.inits.${idx}.wk',this.value);paintCost()" placeholder="e.g. 6"></div>
+        ${['i','c','e'].map(k=>`<div class="fld"><span class="k eduu" data-edu="${k==='i'?'Impact, 1–10: how much would this initiative move the KPI if it works?':k==='c'?'Confidence, 1–10: how sure are you, based on your Exercise-3 evidence — not optimism.':'Ease, 1–10: how cheap and fast to ship (10 = trivial). The inverse of effort.'}">${k==='i'?'Impact':k==='c'?'Confid.':'Ease'}</span><select class="mini" onchange="U('ex4.inits.${idx}.${k}',this.value);render()">${['',1,2,3,4,5,6,7,8,9,10].map(n=>`<option ${String(it[k])===String(n)&&it[k]!==''?'selected':''}>${n===''?'–':n}</option>`).join('')}</select></div>`).join('')}
+        <div class="icec" data-edu="ICE = Impact × Confidence × Ease (each 1–10). Higher = do sooner. A tool for ranking and arguing — never a forecast."><span class="k">ICE</span>${ice||'–'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <h1><span class="badge">4</span> Build the initiative-based plan</h1>
+    <div class="phz"><span>🧍 Solo <b>8m</b></span><span class="a">→</span><span>👥 Pair <b>14m</b></span><span class="a">→</span><span>🗣 Debrief <b>8m</b></span></div>
+    <p class="goal"><b>Objective → Initiatives → Actions.</b> One KPI target, then the bets to hit it — each traced to Exercise-3 evidence and scored with ICE.</p>
+    ${theory('the initiative-based approach',[
+      ['🎯','An <b>Objective</b> is one KPI with a baseline, target and date. It is <b>only done when the number moves</b> — not when features ship.'],
+      ['💡','Each <b>Initiative</b> is a bet: a hypothesis + expected contribution (pp) + the concrete <b>Actions</b> to build.'],
+      ['🧮','<b>ICE = Impact × Confidence × Ease</b> (1–10 each). Rank descending; ship quick, high-confidence wins first.'],
+      ['🛡️','Add a <b>guardrail</b> — what must NOT get worse (e.g. “without raising the 30-day default rate”) — and check your lifts <b>cover the gap</b>.'],
+      ['⚠️','<b>Coverage is necessary, not sufficient.</b> Two bets that rescue the <i>same</i> user do not add. Treat the total as a ceiling — and if it lands on exactly the gap, you reverse-engineered it from the target.'],
+      ['💷','<b>A plan without a cost is a wish.</b> Put <b>person-weeks</b> on every bet and a <b>value per point</b> on the KPI, and the ranking can change: the highest-ICE bet is not always the fastest to pay back. Both numbers are arguable — that is the point of writing them down.'],
+      ['⏱️','<b>Ranking is not sequencing.</b> ICE tells you which bet is <i>best</i>. It has no way to tell you which is <i>nearly free</i>, because Ease is a 1–10 opinion, not a number of weeks — so <b>ICE can never say “this one costs days”</b>. A bet measured in days rather than a quarter <b>ships first whatever it scores</b>: it moves the baseline everything else is measured against, and you learn from it before the big build starts. If one of your bets is a revert, a config change or a copy fix rather than a build, say so out loud — it is the line of the plan nobody has to argue about, and the one most likely to be buried under a rebuild that would have rescued the same users six months later.'],
+      ['👥','<b>Name the population.</b> A rate is a fraction, and after Exercise 3 the bottom of it is usually the segment you built, not everybody. “+8pp on Android sign-ups” and “+8pp on all sign-ups” are the same sentence and different amounts of money — <b>by exactly the ratio of the two denominators</b>. Fixing a real problem for a fifth of your users is still worth doing; pricing it as if it were everybody is how a plan gets killed in month two.']])}
+    <div class="grid2">
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="ONE metric with a baseline, target and date. The objective is only done when this number moves — not when features ship.">Objective — target KPI</span></label><input class="tx" value="${esc(STATE.ex4.kpi)}" oninput="U('ex4.kpi',this.value);paintPlanOv()" placeholder="e.g. KYC completion rate"></div>
+      <div><label class="fl" style="margin-top:0">Deadline</label><input class="tx" value="${esc(STATE.ex4.date)}" oninput="U('ex4.date',this.value)" placeholder="e.g. end of Q3"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="WHICH users the KPI is measured on — the population under the rate. After Exercise 3 this is usually the segment you built and proved, not everybody. Writing 'all sign-ups' is a fine answer; leaving it blank is not, because then nobody in the room knows which number you moved.">Scope — measured on whom</span></label><input class="tx" value="${esc(STATE.ex4.scope)}" oninput="U('ex4.scope',this.value);paintPlanOv();paintCost()" placeholder="e.g. Android sign-ups (the segment from Ex-3)"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="How many users a month are in that scope — the denominator. This is what turns a percentage point into money, and it scales exactly with the population: all 32,000 sign-ups, 17,500 Android sign-ups, or the 5,400 who upload a driving licence on Android are $884, $483 and $149 a point. Same &quot;+1pp&quot;, 5.9× the money between the ends of that ladder.">Scope size — users / month</span></label><input class="tx" value="${esc(STATE.ex4.scopeN)}" oninput="U('ex4.scopeN',this.value);paintPlanOv();paintCost()" placeholder="e.g. 17500 (Android) · all sign-ups = 32000"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="The KPI value today — your starting point (e.g. 40%).">Baseline</span></label><input class="tx" value="${esc(STATE.ex4.base)}" oninput="U('ex4.base',this.value);paintCov();paintPlanOv()" placeholder="e.g. 40 (%)"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="Where you commit to take the KPI by the deadline. Target − baseline = the gap your initiatives must cover.">Target</span></label><input class="tx" value="${esc(STATE.ex4.target)}" oninput="U('ex4.target',this.value);paintCov();paintPlanOv()" placeholder="e.g. 60 (%)"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="The metric you promise NOT to damage while chasing the target. It has to be a number that already exists and that you could plausibly break — if your plan could not possibly move it, it is decoration, not a guardrail.">Guardrail — what must not get worse</span></label><input class="tx" value="${esc(STATE.ex4.guard)}" oninput="U('ex4.guard',this.value);paintPlanOv()" placeholder="e.g. on-time advance repayment"></div>
+      <div><label class="fl" style="margin-top:0"><span class="eduu" data-edu="The value at which you stop and reassess, and how often you look. This is the half everyone skips: “without hurting repayment” commits you to nothing, “it is 94% today, we stop below 92%, checked weekly” is a promise someone can hold you to.">Stop-line — where you stop and reassess</span></label><input class="tx" value="${esc(STATE.ex4.stop)}" oninput="U('ex4.stop',this.value);paintPlanOv()" placeholder="e.g. 94% today — stop below 92%, weekly"></div>
+    </div>
+    <label class="fl" style="margin-top:18px">Initiatives — ranked live by ICE</label>
+    ${cards}
+    <div class="btnrow"><button class="act" onclick="addRow('ex4.inits',{name:'',hyp:'',actions:'',pp:'',eff:'M',i:'',c:'',e:'',wk:''})">+ Add initiative</button>
+    <a class="act" style="text-decoration:none" href="initiative-tracker.html" target="_blank">🎯 Open the full initiative tracker</a></div>
+    <div class="jov"><div class="cap" data-edu="Your Objective and initiative titles as a strip, re-ranked live by ICE as you score. #1 is what you pitch to ship first.">🗺️ Plan overview — Objective ⇒ initiatives, ranked live</div><div id="planov">${planOv()}</div></div>
+    ${iceChart()}
+    <label class="fl" style="margin-top:16px"><span class="eduu" data-edu="The sum of your expected lifts vs the gap (target − baseline). Necessary but not sufficient: falling short means the plan cannot hit the objective, but overlapping bets rescue the same user and do not add, so the total is a ceiling rather than a forecast.">Coverage — do your lifts add up to the gap?</span></label>
+    <div class="covmeter"><div class="covfill" id="covfill" style="width:0%">0</div></div>
+    <div class="covlab"><span id="covleft">Sum of expected lifts</span><span id="covright">Gap to target</span></div>
+    <div class="result" id="ex4res"></div>
+    <label class="fl" style="margin-top:20px"><span class="eduu" data-edu="What the plan costs and when it pays for itself. Cost = person-weeks x your fully-loaded weekly rate. Value = expected lift (pp) x what one point of the KPI is worth per month. Payback = the first month where the accumulated gain covers the build.">What it costs — and when it pays back</span></label>
+    <div class="grid3">
+      <div><label class="fl" style="margin-top:0">$ per person-week (loaded)</label><input class="tx" value="${esc(STATE.ex4.econ.rate)}" oninput="U('ex4.econ.rate',this.value);paintCost()" placeholder="e.g. 4000"></div>
+      <div><label class="fl" style="margin-top:0">$ / month per +1pp of KPI</label><input class="tx" value="${esc(STATE.ex4.econ.vpp)}" oninput="U('ex4.econ.vpp',this.value);paintCost()" placeholder="derive it — see below"></div>
+      <div><label class="fl" style="margin-top:0">Months to plateau (ramp)</label><input class="tx" value="${esc(STATE.ex4.econ.ramp)}" oninput="U('ex4.econ.ramp',this.value);paintCost()" placeholder="e.g. 2.7"></div>
+    </div>
+    <div id="ex4cost"></div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(3,true)">← Back</button><span class="sp"></span><button class="nav2 pri" onclick="markDoneAndNext(3)">Mark done · Exercise 5 →</button></div>
+  </div>`;
+}
+function iceChart(){
+  const ranked=STATE.ex4.inits.map((it,idx)=>({n:it.name||('Initiative '+(idx+1)),ice:(parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0),pp:parseFloat(it.pp)||0})).filter(r=>r.ice>0).sort((a,b)=>b.ice-a.ice);
+  if(!ranked.length)return `<div class="emochart"><div class="cap" data-edu="ICE = Impact × Confidence × Ease (each scored 1–10, then multiplied). It ranks your initiatives best-first. A ranking tool, not a forecast — and not a schedule: a bet that takes days rather than a quarter ships first whatever it scores, because ICE has no cost axis to say so.">📊 ICE ranking</div><div style="color:var(--muted);font-size:13px">Score Impact · Confidence · Ease to see the ranked bars.</div></div>`;
+  const w=760,bh=26,gap=8,lab=210,max=ranked[0].ice;
+  let y=4,out='';
+  ranked.forEach((r,i)=>{const bw=Math.max(24,(w-lab-70)*r.ice/max);
+    out+=`<text x="${lab-8}" y="${y+bh/2+4}" text-anchor="end" font-size="11.5" font-weight="700" fill="#0f172a">${r.n.slice(0,28).replace(/</g,'&lt;')}</text>`
+        +`<rect x="${lab}" y="${y}" width="${bw}" height="${bh}" rx="6" fill="${i===0?'url(#wbiceg)':'#3987e5'}"/>`
+        +`<text x="${lab+9}" y="${y+bh/2+4}" font-size="10.5" font-weight="800" fill="#fff">ICE ${r.ice}</text>`
+        +(r.pp?`<text x="${lab+bw+8}" y="${y+bh/2+4}" font-size="10.5" font-weight="800" fill="#64748b">+${r.pp}pp</text>`:'');
+    y+=bh+gap;});
+  return `<div class="emochart"><div class="cap" data-edu="Your initiatives ranked by ICE score (Impact × Confidence × Ease). The top bar is your best bet — quick, high-confidence wins build momentum. Ranking is not sequencing, though: if one bet costs days rather than a quarter, ship that one first whatever it scores, because ICE has no cost axis and cannot see it.">📊 Ranked by ICE — best bet first</div>
+    <svg viewBox="0 0 ${w} ${y}" width="100%" style="display:block"><defs><linearGradient id="wbiceg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F46E5"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>${out}</svg></div>`;
+}
+function sumFunnelViz(){
+  const rows=STATE.ex2.rows;const first=parseFloat(rows[0]&&rows[0].users);
+  if(isNaN(first)||first<=0)return '';
+  const wi=worstStepIdx();const w=760,bh=20,gap=6,lab=170;
+  let y=4,out='';
+  rows.forEach((r,i)=>{const u=parseFloat(r.users);if(isNaN(u))return;
+    const bw=Math.max(16,(w-lab-60)*u/first);const red=i===wi;
+    out+=`<text x="${lab-8}" y="${y+bh/2+4}" text-anchor="end" font-size="10.5" font-weight="700" fill="#0f172a">${(r.stage||'').slice(0,24).replace(/</g,'&lt;')}</text>`
+        +`<rect x="${lab}" y="${y}" width="${bw}" height="${bh}" rx="5" fill="${red?'#d03b3b':'#3987e5'}"/>`
+        +`<text x="${lab+bw+7}" y="${y+bh/2+4}" font-size="10" font-weight="800" fill="${red?'#d03b3b':'#64748b'}">${u.toLocaleString('en-US')}</text>`;
+    y+=bh+gap;});
+  if(y<=4)return '';
+  return `<div class="emochart" style="margin-top:8px"><div class="cap" data-edu="Your funnel drawn from the Exercise-2 numbers. Bar width = users reaching the stage; red = the worst step conversion.">🔻 Your funnel — red = worst step</div><svg viewBox="0 0 ${w} ${y}" width="100%" style="display:block">${out}</svg></div>`;
+}
+function paintCov(){
+  const fill=document.getElementById('covfill');if(!fill)return;
+  const sum=STATE.ex4.inits.reduce((a,it)=>a+(parseFloat(it.pp)||0),0);
+  const base=parseFloat(STATE.ex4.base),target=parseFloat(STATE.ex4.target);
+  const gap=(!isNaN(base)&&!isNaN(target))?(target-base):null;
+  const res=document.getElementById('ex4res');
+  if(gap&&gap>0){
+    const pct=Math.min(100,sum/gap*100);
+    fill.style.width=pct+'%';fill.textContent='+'+(Math.round(sum*10)/10)+'pp';
+    fill.classList.toggle('full',sum>=gap);
+    document.getElementById('covleft').textContent='Sum of expected lifts: +'+(Math.round(sum*10)/10)+'pp';
+    document.getElementById('covright').textContent='Gap: +'+(Math.round(gap*10)/10)+'pp';
+    res.classList.add('show');
+    res.innerHTML= sum>=gap? `<span class="ok">✓ Your initiatives cover the gap to target.</span>`:`<span class="no">Short of the target by ${Math.round((gap-sum)*10)/10}pp — add or strengthen an initiative.</span>`;
+  } else {
+    fill.style.width='0%';fill.textContent='—';
+    document.getElementById('covleft').textContent='Sum of expected lifts';
+    document.getElementById('covright').textContent='Set baseline & target';
+    if(res){res.classList.remove('show');}
+  }
+}
+/* ---------- cost & payback (same model as the initiative tracker) ----------
+   A lift does not land all at once. Win N extra activations a month and month
+   one is worth N x monthly revenue per activated user; the base then grows for
+   about `ramp` months before it plateaus. Reporting the plateau as a month-one
+   number is the standard way these cases get oversold.                      */
+function ecOf(){const e=STATE.ex4.econ||{};return{rate:parseFloat(e.rate)||0,vpp:parseFloat(e.vpp)||0,ramp:Math.max(1,parseFloat(e.ramp)||1)};}
+function y1Val(steady,ramp){if(!(steady>0))return 0;const m1=steady/ramp;let c=0;for(let m=1;m<=12;m++)c+=m1*Math.min(m,ramp);return c;}
+function payMo(cost,steady,ramp){if(!(cost>0)||!(steady>0))return null;const m1=steady/ramp;let c=0;for(let m=1;m<=120;m++){c+=m1*Math.min(m,ramp);if(c>=cost)return m;}return null;}
+function mny(n){return '$'+Math.round(n).toLocaleString('en-US');}
+/* The three Nimbus constants the worked example is built from, named once so the
+   scope-aware version and the all-users version can never drift apart. Pinned by
+   test-analytics-numbers.js against the live funnel — if the dataset moves and
+   these do not, that test is where it surfaces.                               */
+const ACT_RATE=0.525;     /* verified users who go on to transact */
+const REV_PM=1.92;        /* $ per activated user per month */
+const LIFE_MO=2.74;       /* average months an activated user stays */
+const ALL_SIGNUPS=32000;  /* sign-ups a month — the whole funnel's denominator */
+/* $ a month, at plateau, that one percentage point of a rate measured on a
+   population of N users a month is worth. The number the middle box wants. */
+function vppOf(n){ if(!(n>0))return 0; return (n/100)*ACT_RATE*REV_PM*LIFE_MO; }
+function costHint(){
+  const scN=numOf(STATE.ex4.scopeN), sc=(STATE.ex4.scope||'').trim();
+  const allTxt=`On Nimbus, +1pp of KYC completion across <b>all ${ALL_SIGNUPS.toLocaleString('en-US')}</b> sign-ups a month = <b>320</b> more verified users a month; 52.5% of verified users activate, so <b>168</b> more first transactions; each is worth <b>$1.92</b> a month and stays about <b>2.7</b> months, so a point is worth roughly <b>$323</b> in month one and <b>$884</b> a month once it plateaus.`;
+  if(!(scN>0))
+    return `<div class="covlab" style="margin-top:8px;display:block;line-height:1.6">Stuck on the middle box? Derive it. ${allTxt}<br><b>That figure is for everybody.</b> Put your scope size in above and this recomputes on your population — which, if Exercise 3 did its job, is smaller.</div>`;
+  const users=scN/100, txns=users*ACT_RATE, m1=txns*REV_PM, plateau=m1*LIFE_MO;
+  const ratio=scN/ALL_SIGNUPS, allPlateau=vppOf(ALL_SIGNUPS);
+  /* A scope larger than the funnel it was cut from is an input error, not a big
+     opportunity — so it gets the warning and NOT the "put this in the box"
+     instruction. Telling someone to bank an impossible number is worse than
+     telling them nothing.                                                     */
+  if(scN>ALL_SIGNUPS)
+    return `<div class="covlab" style="margin-top:8px;display:block;line-height:1.6"><span style="color:#b45309"><b>${Math.round(scN).toLocaleString('en-US')} is bigger than the whole funnel.</b> Nimbus takes ${ALL_SIGNUPS.toLocaleString('en-US')} sign-ups a month, and a segment cannot be larger than the population it was cut from — check whether you have typed installs (50,000), or a quarterly total against a monthly rate. Fix the scope and this will derive your value per point.</span><br><span style="opacity:.75">For reference: ${allTxt}</span></div>`;
+  const cmp=ratio<0.999
+    ? `<br>That is <b>${Math.round(ratio*100)}%</b> of all sign-ups, so a point here is worth ${Math.round(ratio*100)}% of a point measured on everybody — ${mny(allPlateau-plateau)} a month less. <b>Quote the scoped number.</b> A fix that is real for part of your base is still worth shipping; pricing it as if it were all of them is how the plan gets killed in month two.`
+    : '';
+  return `<div class="covlab" style="margin-top:8px;display:block;line-height:1.6">Derived on <b>${sc?escT(sc):'your scope'}</b>: +1pp of ${Math.round(scN).toLocaleString('en-US')} users a month = <b>${Math.round(users).toLocaleString('en-US')}</b> more through the step; ${(ACT_RATE*100).toFixed(1)}% activate, so <b>${Math.round(txns).toLocaleString('en-US')}</b> more first transactions; at <b>$${REV_PM.toFixed(2)}</b> a month each for about <b>${LIFE_MO.toFixed(1)}</b> months, a point is worth roughly <b>${mny(m1)}</b> in month one and <b>${mny(plateau)}</b> a month at plateau. Put <b>${Math.round(plateau)}</b> in the middle box.${cmp}<br><span style="opacity:.75">For reference: ${allTxt}</span></div>`;
+}
+function paintCost(){
+  const box=document.getElementById('ex4cost'); if(!box)return;
+  const ec=ecOf();
+  const wk=STATE.ex4.inits.reduce((a,it)=>a+(parseFloat(it.wk)||0),0);
+  const pp=STATE.ex4.inits.reduce((a,it)=>a+(parseFloat(it.pp)||0),0);
+  const hint=costHint();
+  if(!(ec.rate>0)||!(ec.vpp>0)||!(wk>0)){
+    box.innerHTML=`<div class="result show" style="margin-top:8px">Fill in person-weeks on your initiatives and the two assumptions above. If you cannot defend a number for either, <b>that is the finding</b> — go and get it before you pitch.</div>`+hint;
+    return;
+  }
+  const cost=wk*ec.rate, steady=pp*ec.vpp, m1=steady/ec.ramp;
+  const pb=payMo(cost,steady,ec.ramp), y1=y1Val(steady,ec.ramp);
+  const scN=numOf(STATE.ex4.scopeN), sc=(STATE.ex4.scope||'').trim();
+  /* The value-per-point they typed against the value-per-point their own scope
+     implies. Silence here would let a plan sized on everybody wear the label of
+     a segment — the exact mistake Exercise 3 just spent twenty minutes teaching. */
+  let scLine;
+  if(!sc||!(scN>0))
+    scLine=`<br><br><span style="color:#b45309">This money has no population attached to it.</span> Name the <b>scope</b> and its size above — “+${Math.round(pp*10)/10}pp” means nothing until someone says <i>of what</i>, and the answer changes the total by the ratio of the denominators.`;
+  else {
+    const want=vppOf(scN), off=ec.vpp/want;
+    scLine=(off>1.25||off<0.8)
+      ? `<br><br><span style="color:#b45309">Your scope of ${Math.round(scN).toLocaleString('en-US')} a month implies about ${mny(want)} per point, not ${mny(ec.vpp)} — you are ${off>1?'over':'under'}stating each point by ${(off>1?off:1/off).toFixed(1)}&times;.</span> Either the value per point is wrong or the scope is; the room will ask which.`
+      : `<br><br>Measured on <b>${escT(sc)}</b> (${Math.round(scN).toLocaleString('en-US')} a month), and your ${mny(ec.vpp)} a point squares with that denominator. Say the scope out loud when you pitch it — the number is only true of those users.`;
+  }
+  box.innerHTML=`<div class="result show" style="margin-top:8px">
+    <b>${wk} person-weeks → ${mny(cost)}.</b> At +${Math.round(pp*10)/10}pp the plan is worth ${mny(m1)} in month one, ${mny(steady)} a month once it plateaus, ${mny(y1)} across year one — ${pb?('payback in <b>'+pb+' month'+(pb===1?'':'s')+'</b>, '):'<b>no payback inside ten years</b> — '}$${(y1/cost).toFixed(2)} back per $1 spent in year one, ramp included.
+    <br><br>Say the month-one number and the plateau number out loud. They differ by ${ec.ramp.toFixed(1)}&times;, and quoting the plateau as a launch figure is the fastest way to lose a room.${scLine}</div>`+hint;
+}
+/* ---------- Ex5 · Story ---------- */
+function pEx5(){
+  const S=[['situation','① Situation','the goal & North Star','What the client is trying to grow, in one line','One line: what the client wants to grow, and the North Star metric it is measured by.'],
+           ['evidence','② Evidence','funnel + feedback','The 2–3 numbers/quotes that prove the problem','The 2–3 numbers or quotes that PROVE the problem. Show, do not tell — every claim traces to a source.'],
+           ['diagnosis','③ Diagnosis','the bottleneck & cause','Where users drop and why','The one bottleneck and its cause — straight from your Exercise-3 triangulation.'],
+           ['plan','④ Plan','objective + ranked bets','The KPI target and the top 2–3 initiatives','The KPI target plus your top ranked initiatives — straight from Exercise 4.'],
+           ['impact','⑤ Impact','users, money, and on whom','What the numbers become if it works — and for which users','What the numbers become if it works — in users AND money, and name the population it is true of. An unscoped number gets checked against everybody and comes back short.'],
+           ['ask','⑥ The ask','one specific yes','Exactly what you want the client to approve','The single, specific yes you want. A fuzzy ask loses the room.']];
+  const cards=S.map(([k,h,t,ph,edu],idx)=>`
+    <div class="scard ${STATE.ex5[k]?'filled':''}" data-edu="${edu}">
+      <div class="sh">${h}</div><div class="st2">${t}</div>
+      <textarea oninput="U('ex5.${k}',this.value);paintStoryOv()" placeholder="${ph}">${esc(STATE.ex5[k])}</textarea>
+    </div>`).join('');
+  return `<div class="card">
+    <h1><span class="badge">5</span> Draft the client story</h1>
+    <div class="phz"><span>🧍 Solo draft <b>10m</b></span><span class="a">→</span><span>👥 Pair <b>12m</b></span><span class="a">→</span><span>🗣 Share-out <b>8m</b></span></div>
+    <p class="goal">Build the storyboard left → right — one tight sentence per slide. This is the arc that wins the work.</p>
+    ${theory('the client story',[
+      ['🎬','The reliable arc: <b>Situation → Evidence → Diagnosis → Plan → Impact → Ask</b>. Each is one slide, one sentence.'],
+      ['🔢','For analytical clients: <b>lead with the number</b>, cut adjectives, trace every claim to a source.'],
+      ['💰','State impact in users <b>and money</b>, and <b>name the month</b> — "+3,360 activations/mo, worth +$6.5k in month one and ≈+$18k/mo once cohorts stack" survives a CFO. A bare "+$18k/mo" does not.'],
+      ['👥','<b>Name the population too.</b> "+8pp on Android sign-ups — 28% of our volume" is a claim someone can check and therefore believe. "+8pp on KYC" invites them to check it against everybody, find a fifth of what you promised, and stop trusting the rest of the deck.'],
+      ['✅','End on <b>one specific ask</b> the client can say yes to. A fuzzy ask loses the room.']])}
+    <div class="story">${cards}</div>
+    <div class="jov"><div class="cap" data-edu="The six beats of the client story. Each chip turns green when its beat is written — all six = a complete arc.">🎬 Story arc — fills in as you write</div><div id="storyov">${storyOv()}</div></div>
+    <div class="hint">💡 When you're done, the facilitator will reveal the model client deck — compare its structure with yours.</div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(4,true)">← Back</button><span class="sp"></span><button class="nav2 pri" onclick="markDoneAndNext(4)">Mark done · Summary →</button></div>
+  </div>`;
+}
+/* ---------- Summary ---------- */
+function pSummary(){
+  const doneCt=STATE.done.filter(Boolean).length;
+  const j=STATE.ex1.rows.map(r=>r.stage).filter(Boolean).join(' → ')||'—';
+  const gates=STATE.ex1.rows.filter(r=>r.gate).map(r=>r.stage).join(', ')||'—';
+  const wi=worstStepIdx();const rows=STATE.ex2.rows;
+  const nmS=i=>String(rows[i].stage).trim()||('stage '+(i+1));
+  const worst= wi>0? `${nmS(wi-1)} → ${nmS(wi)}`:(STATE.ex2.worst||'—');
+  const diag= STATE.ex3.who? `Users drop at <b>${esc(STATE.ex3.who)}</b> because <b>${esc(STATE.ex3.why)}</b>.`:'—';
+  const ranked=STATE.ex4.inits.map(it=>({n:it.name,ice:(parseInt(it.i)||0)*(parseInt(it.c)||0)*(parseInt(it.e)||0)})).filter(r=>r.ice>0).sort((a,b)=>b.ice-a.ice);
+  const sum=STATE.ex4.inits.reduce((a,it)=>a+(parseFloat(it.pp)||0),0);
+  /* The two lines the take-home was missing: what the room actually held
+     constant, and which population the money is true of. Both print the
+     absence loudly, because a blank here is the finding.                   */
+  const VLAB={survived:'gap survived',dissolved:'gap dissolved',reversed:'gap reversed'};
+  const bl=STATE.ex3.built.filter(b=>(b.name||'').trim());
+  const builtLine= bl.length
+    ? bl.map(b=>`<b>${esc(b.name)}</b>${b.n?` (n=${esc(b.n)})`:''}${b.verdict?` — ${VLAB[b.verdict]||esc(b.verdict)}`:' — <span style="color:#b45309">no verdict</span>'}`).join(' · ')
+    : '<span style="color:#b45309">none — the diagnosis rests on one-dimension scans, which cannot separate a cause from a confounder</span>';
+  const scN4=numOf(STATE.ex4.scopeN);
+  const scopeLine= (STATE.ex4.scope||'').trim()
+    ? `<b>${esc(STATE.ex4.scope)}</b>${scN4>0?` · ${Math.round(scN4).toLocaleString('en-US')} users a month`:' <span style="color:#b45309">· size not stated</span>'}`
+    : '<span style="color:#b45309">not stated — so the lift below is not attached to any population</span>';
+  return `<div class="card">
+    <h1><span class="badge">✓</span> Your workshop summary</h1>
+    <p class="goal">${doneCt}/5 exercises marked done. This is the whole diagnosis on one page — print it or export it as your take-home.</p>
+    <div class="sumsec"><h3>1 · Journey</h3><div class="jov" style="margin-top:0"><div>${jmapViz()}</div></div><div class="sv" style="margin-top:10px">Gates: <b>${esc(gates)}</b> · Hypothesis: ${esc(STATE.ex1.hypo)||'—'}</div>${emoChart()}</div>
+    <div class="sumsec"><h3>2 · Funnel</h3><div class="sv">Worst step: <b>${esc(worst)}</b> · Overall: <b>${esc(STATE.ex2.overall)||'—'}</b></div>${sumFunnelViz()}</div>
+    <div class="sumsec"><h3>3 · Diagnosis</h3><div class="sv">${diag}<br>Root cause: ${esc(STATE.ex3.cause)||'—'}<br>
+      Segments built: ${builtLine}<br>
+      Hypothesis killed: ${esc(STATE.ex3.killed)||'<span style="color:#b45309">none — so nothing was controlled for</span>'}</div></div>
+    <div class="sumsec"><h3>4 · Plan</h3><div class="sv">Objective: <b>${esc(STATE.ex4.kpi)||'—'}</b> ${STATE.ex4.base?esc(STATE.ex4.base)+'% → '+esc(STATE.ex4.target)+'%':''} ${STATE.ex4.date?'by '+esc(STATE.ex4.date):''}<br>
+      Measured on: ${scopeLine}<br>
+      ${ranked.length?('Ship order: '+ranked.map((r,i)=>`${i+1}. ${esc(r.n)} (ICE ${r.ice})`).join(' · ')):'Score your initiatives to see the ship order.'}<br>
+      Expected lift: <b>+${Math.round(sum*10)/10}pp</b><br>
+      Guardrail: <b>${esc(STATE.ex4.guard)||'—'}</b>${STATE.ex4.stop?' · stop at '+esc(STATE.ex4.stop):''}</div>${iceChart()}</div>
+    <div class="sumsec"><h3>5 · Client story</h3><div class="sv">${['situation','evidence','diagnosis','plan','impact','ask'].map(k=>STATE.ex5[k]?`<b>${k[0].toUpperCase()+k.slice(1)}:</b> ${esc(STATE.ex5[k])}`:null).filter(Boolean).join('<br>')||'—'}</div></div>
+    <div class="btnrow"><button class="act" onclick="window.print()">🖨️ Print / save as PDF</button><button class="act" onclick="exportJSON()">⬇️ Export JSON</button></div>
+    <div class="pagenav"><button class="nav2" onclick="goPage(5,true)">← Back to Exercise 5</button><span class="sp"></span></div>
+  </div>`;
+}
+/* =============== render =============== */
+function render(){
+  renderGroupSel();renderStepper();
+  const fns=[pIntro,pEx1,pEx2,pEx3,pEx4,pEx5,pSummary];
+  document.getElementById('pageMount').innerHTML=`<div class="pg">${fns[STATE.page]()}</div>`;
+  if(STATE.page===2){checkQuiet();paintFunnelBars();}
+  if(STATE.page===4){paintCov();paintCost();}
+}
+function checkQuiet(){ /* fill computed conv cells quietly on render */
+  const rows=STATE.ex2.rows;
+  for(let idx=1;idx<rows.length;idx++){
+    const u=parseFloat(rows[idx].users),pu=parseFloat(rows[idx-1].users);
+    const cell=document.getElementById('c2_'+idx);
+    if(cell&&!isNaN(u)&&!isNaN(pu)&&pu>0)cell.textContent=Math.round(u/pu*100)+'%';
+  }
+}
+/* row helpers */
+function addRow(path,obj){const p=path.split('.');let o=STATE;for(const k of p)o=o[/^\d+$/.test(k)?+k:k];o.push(obj);save();render();}
+function delRow(path,idx){const p=path.split('.');let o=STATE;for(const k of p)o=o[/^\d+$/.test(k)?+k:k];if(o.length<=1)return;o.splice(idx,1);if(path==='ex2.rows'&&STATE.ex3.pin>=o.length)STATE.ex3.pin=-1;save();render();}
+function moveRow(path,idx,dir){const p=path.split('.');let o=STATE;for(const k of p)o=o[/^\d+$/.test(k)?+k:k];const j=idx+dir;if(j<0||j>=o.length)return;const t=o[idx];o[idx]=o[j];o[j]=t;save();render();}
+/* import/export */
+function exportJSON(){const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(STATE.group||'workbook').replace(/\s+/g,'-')+'-workbook.json';a.click();}
+function importJSON(){document.getElementById('file').click();}
+function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{STATE=normalize(JSON.parse(r.result));const g=IDX.groups.find(x=>x.id===IDX.activeId);if(g&&STATE.group)g.name=STATE.group;saveIndex();save();render();}catch(err){alert('Could not read that file.');}};r.readAsText(f);}
+/* print: show all pages */
+window.addEventListener('beforeprint',()=>{
+  const fns=[pIntro,pEx1,pEx2,pEx3,pEx4,pEx5,pSummary];
+  document.getElementById('pageMount').innerHTML=fns.map(f=>`<div class="pg">${f()}</div>`).join('');
+});
+window.addEventListener('afterprint',()=>{render();});
+/* =============== boot =============== */
+function bootFirst(name){
+  const id=newId();
+  IDX={activeId:id,groups:[{id,name}]};
+  saveIndex();
+  STATE=clone(DEFAULT);STATE.group=name;save();render();applyHashPage();
+}
+/* deep links: …/exercise-workbook.html#ex3 lands on Exercise 3.
+   The facilitator deck pastes these straight into Slack. */
+function pageFromHash(){
+  const h=(location.hash||'').replace(/^#/,'').trim().toLowerCase();
+  if(!h)return -1;
+  const byId=PAGES.findIndex(p=>p.id.toLowerCase()===h);
+  if(byId>=0)return byId;
+  const m=h.match(/^(?:p|page)(\d+)$/);
+  if(m)return Math.max(0,Math.min(PAGES.length-1,+m[1]));
+  if(h==='start'||h==='intro')return 0;
+  if(h==='end'||h==='summary')return PAGES.length-1;
+  return -1;
+}
+function applyHashPage(){const n=pageFromHash();if(n>=0&&STATE&&n!==STATE.page)goPage(n);}
+window.addEventListener('hashchange',applyHashPage);
+if(!IDX){
+  let old=null;try{old=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  if(old){ // migrate legacy single-workbook silently
+    const id=newId();IDX={activeId:id,groups:[{id,name:old.group||''}]};saveIndex();
+    localStorage.setItem(PREFIX+id,JSON.stringify(old));STATE=loadGroup(id);render();applyHashPage();
+    if(!STATE.group)showNameModal({title:'Name your group',sub:'Each group keeps its own workbook on this device. What should we call yours?',cta:'Start',onSave:(n)=>{STATE.group=n;IDX.groups[0].name=n;saveIndex();save();render();}});
+  } else {
+    showNameModal({title:'Welcome to the Workshop Workbook',sub:'Before you start: what should we call your group? Each group\'s workbook is saved separately on this device.',cta:'Start the workbook',onSave:bootFirst});
+  }
+} else {
+  STATE=loadGroup(IDX.activeId);render();applyHashPage();
+}
+/* ---------- educational hover tooltips ---------- */
+(function(){
+  const tip=document.createElement('div');tip.id='wbtip';document.body.appendChild(tip);
+  let tt=null;
+  function show(el,x,y){const txt=el.getAttribute('data-edu');if(!txt)return;
+    tip.innerHTML='<span class="th2">ⓘ What this means</span>'+txt;tip.classList.add('show');
+    const W=300;let lx=x+14,ly=y+16;if(lx>innerWidth-W-12)lx=Math.max(8,x-W);if(ly>innerHeight-130)ly=Math.max(8,y-110);
+    tip.style.left=lx+'px';tip.style.top=ly+'px';}
+  document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-edu]');if(el){show(el,e.clientX,e.clientY);}else if(!tt){tip.classList.remove('show');}});
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-edu]');
+    if(el&&!e.target.closest('button,input,select,textarea,a')){show(el,e.clientX,e.clientY);clearTimeout(tt);tt=setTimeout(()=>{tt=null;tip.classList.remove('show');},2600);}});
+})();
+
+
+
+
+
+/*__GLOSSARY_AUTO_BEGIN__*/
+/* ==========================================================================
+   AUTO-GLOSSARY — every complex term, everywhere, gets a hover explanation.
+   Walks the DOM after every render and wraps each glossary term in a
+   .eduu span carrying a data-edu tooltip. Idempotent, focus-safe, skips
+   inputs / buttons / SVG / anything already explained.
+   Also adds a 📖 Glossary panel so terms are browsable, not just hoverable.
+   ========================================================================== */
+(function(){
+  const G = [
+["North Star metric","The single number that best captures the value users actually get from the product. Every other metric is a supporting act."],
+["North Star","The single number that best captures the value users actually get from the product. Every other metric is a supporting act."],
+["ICE score","ICE = Impact × Confidence × Ease, each scored 1–10 then multiplied (max 1000). It RANKS your initiatives so the best bet ships first. It is a ranking tool, never a forecast."],
+["ICE ranking","Your initiatives sorted by ICE score, highest first. The top one is what you argue to build next."],
+["ICE","ICE = Impact × Confidence × Ease, each scored 1–10 then multiplied (max 1000). It RANKS your initiatives so the best bet ships first. It is a ranking tool, never a forecast."],
+["Impact","Impact (1–10): if this initiative works, how much would it move the KPI? The I in ICE. Score the size of the prize, not how much you like the idea."],
+["Confidence","Confidence (1–10): how sure are you it will work, based on the evidence you actually gathered? The C in ICE. Enthusiasm is not confidence."],
+["Confid.","Confidence (1–10): how sure are you it will work, based on the evidence you actually gathered? The C in ICE. Enthusiasm is not confidence."],
+["Ease","Ease (1–10): how cheap and fast is it to ship, where 10 = trivial? The E in ICE. It is the inverse of effort, so a big build scores LOW."],
+["Effort","T-shirt size of the build cost — Small, Medium or Large. High-impact, low-effort bets ship first because they buy you credibility for the expensive ones."],
+["expected lift","How many percentage points this one initiative should add to the KPI if it works. Your honest estimate — and the number the coverage check adds up."],
+["Exp. lift","How many percentage points this one initiative should add to the KPI if it works. Your honest estimate — and the number the coverage check adds up."],
+["percentage points","Percentage points (pp) — the absolute distance between two percentages. Going 40% → 45% is +5pp. Saying '+5%' would mean 42%. Mixing them up is the most common way plans quietly overpromise."],
+["pp","Percentage points — the absolute distance between two percentages. 40% → 45% is +5pp, not +5% (which would be 42%). Mixing these up is how plans quietly overpromise."],
+["coverage check","Adding up every initiative's expected lift and comparing the total to the gap (target − baseline). Necessary but not sufficient: falling short means the plan cannot hit the objective, but two bets that rescue the same user do not add, so the total is a ceiling rather than a forecast."],
+["coverage","Do your expected lifts add up to the gap between baseline and target? If they don't, the plan cannot hit the objective no matter how good the ideas are. If they add up to EXACTLY the gap, you probably worked backwards from the target — and overlapping bets don't add anyway."],
+["baseline","Where the KPI sits today, before you change anything. Your starting line — and half of the gap calculation."],
+["target","Where you commit to take the KPI by a stated date. Target − baseline = the gap your initiatives have to cover."],
+["KPI","Key Performance Indicator — the one number this objective is judged on. If the KPI doesn't move, the work didn't work, however many features shipped."],
+["objective","The one outcome you are committing to, written as a KPI with a baseline, a target and a date. Not a feature list."],
+["initiatives","The bets you'll make to move the KPI — bigger than a task, smaller than a strategy. Each carries an expected lift and an ICE score."],
+["initiative","A bet you'll make to move the KPI — bigger than a task, smaller than a strategy. Each one carries an expected lift and an ICE score."],
+["funnel","An ordered sequence of steps users pass through (install → sign-up → KYC → first transaction). A funnel shows you WHERE people fall out. It never tells you why."],
+["step conversion","This stage ÷ the previous stage. It finds the weak link — always compare a step to its NEIGHBOURS, not to the top of the funnel."],
+["step conv","This stage ÷ the previous stage. It finds the weak link — always compare a step to its NEIGHBOURS, not to the top of the funnel."],
+["conversion rate","The share of people who make it from one step to the next. Always ask: conversion from what, to what, and over what time window."],
+["conversion window","How long a user is given to finish the funnel before they are counted as dropped. A 1-hour window and a 7-day window can tell opposite stories about the same product."],
+["conversion","The share of people who make it from one step to the next. Always ask: conversion from what, to what, over what window."],
+["drop-off","The users who reach a step and never complete it. The mirror image of conversion — and where the money is."],
+["bottleneck","The single step losing the most users relative to its neighbours. Fix it and every stage downstream grows for free."],
+["segmentation","Splitting one blended number by platform, channel, country or cohort. It is the fastest way to turn a vague number into a fixable problem."],
+["compound segment","A segment defined by two or more conditions at once — platform AND channel, say. Scanning one dimension at a time finds candidates; combining two is the only way to tell which candidate was doing the work."],
+["comparison bar","The strip at the top of the analytics where you add up to four segments. Every report below it re-renders as one column per segment — and any report that cannot honestly be split says so instead of guessing."],
+["segment","Split a blended number by platform, channel, country or cohort. A blended 40% can hide iOS 52% and Android 30% — two completely different problems."],
+["confounding","When two things move together because a third is driving both. On Bloom, mobile web looked 19 points worse than desktop until you noticed mobile web was mostly guest checkout — the device was standing in for the gate."],
+["confounder","The hidden third variable making two things look related. You cannot find one by scanning dimensions one at a time; you have to hold one constant and look again."],
+["confound","To mix up two explanations so a difference cannot be attributed to either. The cure is to build the combined segment and see whether the gap survives."],
+["Simpson's paradox","When a pattern that holds in every subgroup reverses once the subgroups are pooled — or the other way round. The clearest sign that a blended number is hiding a mix, not a level."],
+["margin of error","How far a measured rate could plausibly sit from the truth, given how many users it was measured on. A 5pp gap with a ±7pp margin is not a small effect — it is no detectable effect."],
+["denominator","The bottom of a fraction: the population a rate is measured on. One percentage point of a rate on the 5,400 driving-licence-on-Android sign-ups is worth about a sixth of a point on all 32,000 — same sentence, different money."],
+["null result","A difference too small to tell apart from chance. It is a real answer and worth reporting; the mistake is quietly downgrading it to a small effect and building against it."],
+["breakdown","Splitting a report by a property such as platform or channel. Same idea as segmenting — it turns one number into a comparison."],
+["cohort","A group of users bucketed by something they share, usually the week they signed up. Cohorts let you compare like with like as the product changes."],
+["retention","The share of a cohort still coming back N days after they joined. Acquisition without retention is a leaky bucket with a bigger tap."],
+["churn","The share of users who stop coming back. The inverse of retention."],
+["activation","The moment a new user first gets real value — for Nimbus, the first transaction. Signing up is not activation; it is a promise of activation."],
+["onboarding","Everything between install and first value. The most expensive stretch of any product, and where most of the funnel is lost."],
+["KYC","Know Your Customer — the identity check a regulated fintech must complete before you can move money. Mandatory, unavoidable, and a classic place for users to give up."],
+["NPS","Net Promoter Score — 'how likely are you to recommend us?' on 0–10; promoters minus detractors. A relationship signal, not a usability one."],
+["CSAT","Customer Satisfaction — a direct 'how satisfied were you?' rating, usually asked right after one interaction."],
+["ARPU","Average Revenue Per User — revenue ÷ users. It is an average, so segment it before you trust it."],
+["MAU","Monthly Active Users — the count of distinct users who did something meaningful in a month. Check what 'active' actually means before quoting it."],
+["DAU","Daily Active Users — the count of distinct users active in a day."],
+["Flows","The report that draws the real screen-by-screen paths users take (a Sankey). A funnel says which STEP leaks; Flows says which SCREEN."],
+["Sankey","A flow diagram where the thickness of each ribbon equals the number of users taking that path. It shows where a journey splits and where it dies."],
+["root cause","The specific, fixable thing — a screen, a bug, a policy, a rule. You can brief a team against a root cause."],
+["symptom","The vague feeling: 'onboarding feels bad'. You cannot build against a symptom. Keep digging until you can name the screen."],
+["hypothesis","A testable claim with a predicted outcome: 'ID capture fails on Android because of the camera resolution check'. 'Onboarding is bad' is not a hypothesis."],
+["triangulate","Confirm a diagnosis with sources that can fail INDEPENDENTLY. The funnel, the segments and Flows are three views of one event stream — if the event is broken they agree with each other and all of them are wrong. The users' own words are the separate witness. Three charts are not three sources."],
+["triangulated","Confirmed by evidence that can fail independently — what users DO (the event stream) and what users SAY (reviews, tickets, NPS) — pointing at the same cause. Three views of one event stream is one source, not three."],
+["triangulation","Confirming a diagnosis with sources that can fail independently: what users do and what users say. Test it by asking what a single broken event would do to your evidence — if it would fool all of it at once, you have one source."],
+["qualitative","Words: reviews, support tickets, interviews, session recordings. Qual explains WHY something happens."],
+["quantitative","Numbers: funnels, cohorts, events, revenue. Quant shows WHERE it happens and HOW MUCH it costs."],
+["qual","Words — reviews, tickets, interviews. Qual explains WHY. Never ship a fix off a number with no qual behind it."],
+["quant","Numbers — funnels, cohorts, events. Quant shows WHERE the problem is and how big it is."],
+["verbatim","A user's exact words, quoted unedited. The single most persuasive piece of evidence you can put in a client room."],
+["A/B test","Randomly splitting users between two versions and measuring which performs better. It is how an opinion becomes evidence."],
+["guardrail","A metric you promise NOT to damage while chasing the target. Growing activation by weakening fraud checks is not a win."],
+["statistical significance","Whether a difference is bigger than random noise. Small samples throw up big fake differences all the time."],
+["significance","Whether a difference is bigger than random noise. With small samples, impressive-looking gaps are usually nothing."],
+["sample size","How many users a number is based on. A 90% conversion rate measured on 10 people tells you nothing at all."],
+["correlation","Two things moving together. That is a hypothesis, not a finding — and never, on its own, a reason to build."],
+["causation","One thing actually making another happen. You only prove it by changing one thing and watching the other move."],
+["median","The middle value — half of users above, half below. Safer than an average whenever a few extreme users would drag the mean around."],
+["p90","The 90th percentile: 90% of users are faster or lower than this value. The median tells you the typical experience; p90 tells you where the pain is."],
+["time to convert","How long users take to get from one funnel step to the next. A long tail almost always means people left and came back later."],
+["gate","A mandatory step the product forces between the user and value — identity checks, linking a bank, granting permissions. Every gate is a place the journey can break."],
+["friction","Anything that costs the user effort, time or nerve on the way to value. Some friction is deliberate; most is accidental."],
+["emotion curve","The user's felt experience plotted across the journey stages. A dip that lands on a mandatory gate is where products bleed."],
+["journey map","The stages a user passes through from first contact to real value, in order. Built before you look at any chart, so the data has somewhere to land."],
+["vanity metric","A number that only ever goes up and never changes a decision — total downloads, cumulative sign-ups. Comforting and useless."],
+["proxy metric","A fast-moving number you can watch weekly that stands in for a slow one you actually care about."],
+["the ask","The single decision you want from the room: budget, a green light, a date, a name. A story with no ask is just a report."],
+["discovery","The phase where you work out what is worth building, before anyone commits to building it."],
+["user profile","The complete event timeline of one individual user. Where a statistic turns back into a person — and where the 'six attempts' story comes from."],
+["first transaction","Nimbus's activation moment: the point where a new user has actually moved money and got value. Everything before it is setup."],
+["Insights","The report for counting and segmenting events over time — how many, by whom, trending which way."],
+["Cohorts","Saved groups of users defined by behaviour ('started KYC, never finished'). Build one and you can look at only those users everywhere else."]
+  ];
+
+  /* longest first so "step conversion" wins over "conversion" */
+  const sorted = G.slice().sort(function(a,b){ return b[0].length - a[0].length; });
+  const MAP = {};
+  sorted.forEach(function(g){ const k = g[0].toLowerCase(); if(!MAP[k]) MAP[k] = g[1]; });
+
+  let RE = null;
+  try{
+    const alts = sorted.map(function(g){ return g[0].replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&'); }).join('|');
+    RE = new RegExp('\\b(' + alts + ')\\b','gi');   /* no lookbehind — old iOS Safari */
+  }catch(e){ RE = null; }
+
+  /* never touch: form controls, code, buttons, nav chrome, headings, SVG */
+  const SKIP_TAG = /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|CODE|PRE|BUTTON|H1|H2|SVG|TITLE)$/;
+  /* skip already-tagged INLINE terms (.eduu) but still tag inside block-level
+     explainers like .cap / .scard — the innermost tooltip wins, which is right */
+  const SKIP_SEL = '.eduu,[data-noedu],#wbtip,.modal,.topbar,.stepper,.step,.chips,.viewtoggle,button,a,#glossPanel,#eduHint';
+
+  function eligible(node){
+    if(!node.nodeValue || !/\S/.test(node.nodeValue)) return false;
+    const p = node.parentElement;
+    if(!p) return false;
+    if(SKIP_TAG.test(p.tagName)) return false;
+    if(p.ownerSVGElement || p.tagName === 'svg') return false;
+    if(typeof p.closest !== 'function') return false;
+    if(p.closest(SKIP_SEL)) return false;
+    return true;
+  }
+
+  function autoEdu(root){
+    if(!RE || !root) return;
+    let nodes = [];
+    try{
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let n;
+      while((n = w.nextNode())){
+        if(eligible(n)){ RE.lastIndex = 0; if(RE.test(n.nodeValue)) nodes.push(n); }
+      }
+    }catch(e){ return; }
+    nodes.forEach(function(node){
+      const txt = node.nodeValue;
+      const frag = document.createDocumentFragment();
+      let last = 0, m, guard = 0;
+      RE.lastIndex = 0;
+      while((m = RE.exec(txt)) !== null && guard++ < 500){
+        if(m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+        const s = document.createElement('span');
+        s.className = 'eduu autoedu';
+        s.setAttribute('data-edu', MAP[m[0].toLowerCase()] || '');
+        s.textContent = m[0];
+        frag.appendChild(s);
+        last = m.index + m[0].length;
+        if(RE.lastIndex === m.index) RE.lastIndex++;
+      }
+      if(last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      if(node.parentNode) node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  function autoEduAll(){ autoEdu(document.body); }
+  window.autoEduAll = autoEduAll;
+  window.autoEdu = autoEdu;
+
+  /* ---------- styles: subtle affordance + glossary panel ---------- */
+  const st = document.createElement('style');
+  st.textContent =
+    '.eduu{border-bottom:1.5px dotted #a5b4fc;padding-bottom:1px;cursor:help}'
+  + '.eduu:hover{border-bottom-color:#6561FF;background:rgba(101,97,255,.07);border-radius:3px}'
+  + '#glossBtn{position:fixed;left:14px;bottom:14px;z-index:70;border:1.5px solid #d7dbe6;background:#fff;color:#121826;'
+  + 'font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:999px;cursor:pointer;'
+  + 'box-shadow:0 6px 18px rgba(15,23,42,.13)}'
+  + '#glossBtn:hover{border-color:#6561FF;color:#6561FF}'
+  + '#glossPanel{position:fixed;inset:0;z-index:90;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:16px}'
+  + '#glossPanel .gp{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.35)}'
+  + '#glossPanel .gph{padding:16px 18px 10px;border-bottom:1px solid #eef1f6;display:flex;align-items:center;gap:10px}'
+  + '#glossPanel .gph b{font-size:16px}'
+  + '#glossPanel .gpx{margin-left:auto;border:0;background:#f1f5f9;border-radius:8px;font-size:15px;line-height:1;padding:7px 10px;cursor:pointer;font-family:inherit}'
+  + '#glossPanel input.gpq{width:100%;margin:12px 18px 0;width:calc(100% - 36px);border:1.5px solid #e2e6ef;border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13.5px}'
+  + '#glossPanel .gpb{overflow-y:auto;padding:12px 18px 18px}'
+  + '#glossPanel .gr{padding:9px 0;border-bottom:1px solid #f4f6fa}'
+  + '#glossPanel .gr b{display:block;font-size:13.5px;color:#6561FF;margin-bottom:2px}'
+  + '#glossPanel .gr span{font-size:13px;line-height:1.5;color:#475069}'
+  + '#eduHint{position:fixed;left:14px;bottom:60px;z-index:70;pointer-events:none;max-width:min(290px,calc(100vw - 28px));background:#121826;color:#fff;'
+  + 'font-size:12px;line-height:1.45;font-weight:500;padding:9px 12px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.28)}'
+  + '#eduHint b{color:#a5b4fc}'
+  + '#eduHint u{text-decoration:none;border-bottom:1.5px dotted #a5b4fc}'
+  + '@media print{.eduu{border-bottom:none;background:none}#glossBtn,#eduHint,#glossPanel{display:none!important}}';
+  document.head.appendChild(st);
+
+  /* ---------- browsable glossary ---------- */
+  function openGloss(){
+    if(document.getElementById('glossPanel')) return;
+    const rows = G.slice().sort(function(a,b){ return a[0].toLowerCase() < b[0].toLowerCase() ? -1 : 1; });
+    const wrap = document.createElement('div');
+    wrap.id = 'glossPanel';
+    wrap.setAttribute('data-noedu','1');
+    const body = rows.map(function(r){
+      return '<div class="gr" data-t="' + r[0].toLowerCase() + ' ' + r[1].toLowerCase().replace(/"/g,'') + '"><b>'
+        + r[0].replace(/</g,'&lt;') + '</b><span>' + r[1].replace(/</g,'&lt;') + '</span></div>';
+    }).join('');
+    wrap.innerHTML = '<div class="gp"><div class="gph"><b>📖 Glossary</b>'
+      + '<span style="font-size:12px;color:#6b7280">' + rows.length + ' terms · every one is also hoverable in the page</span>'
+      + '<button class="gpx" aria-label="Close">✕</button></div>'
+      + '<input class="gpq" placeholder="Filter… e.g. ICE, coverage, cohort">'
+      + '<div class="gpb">' + body + '</div></div>';
+    document.body.appendChild(wrap);
+    const close = function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); };
+    wrap.querySelector('.gpx').onclick = close;
+    wrap.onclick = function(e){ if(e.target === wrap) close(); };
+    const q = wrap.querySelector('.gpq');
+    q.oninput = function(){
+      const v = q.value.trim().toLowerCase();
+      wrap.querySelectorAll('.gr').forEach(function(el){
+        el.style.display = (!v || el.getAttribute('data-t').indexOf(v) >= 0) ? '' : 'none';
+      });
+    };
+    setTimeout(function(){ try{ q.focus(); }catch(e){} }, 30);
+  }
+  window.openGlossary = openGloss;
+
+  function chrome(){
+    if(document.getElementById('glossBtn')) return;
+    const b = document.createElement('button');
+    b.id = 'glossBtn';
+    b.type = 'button';
+    b.setAttribute('data-noedu','1');
+    b.textContent = '📖 Glossary';
+    b.onclick = openGloss;
+    document.body.appendChild(b);
+
+    let seen = false;
+    try{ seen = localStorage.getItem('eduHintSeen') === '1'; }catch(e){}
+    if(seen) return;
+    const h = document.createElement('div');
+    h.id = 'eduHint';
+    h.setAttribute('data-noedu','1');
+    h.innerHTML = '<b>New here?</b> Every <u>underlined word</u> explains itself — hover it (or tap on mobile). Full list in <b>📖 Glossary</b>.';
+    document.body.appendChild(h);
+    const kill = function(){
+      if(h.parentNode) h.parentNode.removeChild(h);
+      try{ localStorage.setItem('eduHintSeen','1'); }catch(e){}
+      document.removeEventListener('click', kill, true);
+      document.removeEventListener('keydown', kill, true);
+    };
+    document.addEventListener('click', kill, true);
+    document.addEventListener('keydown', kill, true);
+    setTimeout(kill, 8000);
+  }
+
+  /* ---------- keep everything tagged as the app re-renders ---------- */
+  let queued = false, obs = null;
+  function pass(){
+    queued = false;
+    if(obs) obs.disconnect();
+    try{ autoEduAll(); }catch(e){}
+    if(obs) obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+  }
+  function schedule(){
+    if(queued) return;
+    queued = true;
+    (window.requestAnimationFrame || function(f){ setTimeout(f,16); })(pass);
+  }
+  try{
+    obs = new MutationObserver(schedule);
+  }catch(e){ obs = null; }
+
+  function boot(){
+    try{ chrome(); }catch(e){}
+    try{ autoEduAll(); }catch(e){}
+    if(obs) obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+/*__GLOSSARY_AUTO_END__*/
+</script>
+<script>
+/* Hard mode has to survive a click. The analytics page is where the setting
+   lives, but the workbook and the tracker both link back to it — and a pair
+   working from a ?mode=hard tab used to click through and land in SOFT mode,
+   where the bottleneck banner names the Exercise-3 answer outright.
+
+   Two sources, in order: this page's own query string (so a facilitator can
+   share every link in hard mode), then the flag the analytics page writes to
+   localStorage whichever way the mode was set. Same origin on a served site,
+   so the second one is what actually does the work on the day. */
+(function(){
+  function hardNow(){
+    try{
+      var q = new URLSearchParams(location.search);
+      if(q.has('mode')) return q.get('mode') === 'hard';
+      if(q.has('hard'))  return q.get('hard') !== '0';
+      return localStorage.getItem('nimbusHard') === '1';
+    }catch(e){ return false; }
+  }
+  function paint(){
+    if(!hardNow()) return;
+    var links = document.querySelectorAll('a[data-keepmode][href]');
+    for(var i=0;i<links.length;i++){
+      var a = links[i], h = a.getAttribute('href');
+      if(/[?&]mode=/.test(h)) continue;
+      a.setAttribute('href', h + (h.indexOf('?') < 0 ? '?' : '&') + 'mode=hard');
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint);
+  else paint();
+})();
+</script>
+</body>
+</html>
